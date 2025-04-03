@@ -52,7 +52,11 @@ class SMSService {
 
       const messages = await this.netgsm.getInbox(smsInboxPayload);
       return messages.messages || []; // Return messages or an empty array if none found
-    } catch (error) {
+    } catch (error: any) {
+      if (error.code !== '40') {
+        // Ignore 40 errors no messgaes found
+        console.error('Error in incoming SMS job:', error);
+      }
       console.error('Error getting incoming messages:', error);
       throw error;
     }

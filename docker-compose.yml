@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
@@ -26,7 +24,7 @@ services:
   postgres:
     image: postgres:latest
     ports:
-      - "5432:5432"
+      - '5432:5432'
     environment:
       POSTGRES_USER: username
       POSTGRES_PASSWORD: password
@@ -37,7 +35,7 @@ services:
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     ports:
-      - "8080:8080"
+      - '8080:8080'
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
