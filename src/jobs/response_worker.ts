@@ -1,6 +1,7 @@
 import { Kafka } from 'kafkajs';
-import { processInboundSMS } from '../services/response_service';
+import { ResponseService } from '../services/response_service';
 import SMSService from '../services/sms_service';
+import OpenAIService from '../services/openai_service';
 const kafka = new Kafka({
   clientId: 'sms-gpt-response-worker',
   brokers: ['localhost:29092'], // Replace with your Kafka broker address
@@ -19,6 +20,8 @@ const startResponseWorker = async () => {
       topic: 'sms-inbound',
       fromBeginning: true,
     });
+    const openaiService = new OpenAIService();
+    const responseService = new ResponseService(openaiService);
 
     // Listen for messages
     await kafkaConsumer.run({
@@ -30,10 +33,15 @@ const startResponseWorker = async () => {
           if (value) {
             // Parse the message
             const parsedMessage = JSON.parse(value);
-            // Delegate processing to the Response Service
-            const response = await processInboundSMS(parsedMessage);
+
+            // Prepare the message to be sent
+            const reply = await responseService.prepareReply(parsedMessage);
+
             const smsService = new SMSService();
-            await smsService.sendSMS(response, parsedMessage.phoneNumber);
+            await smsService.sendSMS(
+              reply || 'Something went wrong',
+              parsedMessage.phoneNumber,
+            );
           }
         } catch (error) {
           console.error('Response Worker: Error processing message:', error);

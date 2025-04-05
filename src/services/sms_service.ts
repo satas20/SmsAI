@@ -55,10 +55,15 @@ class SMSService {
     } catch (error: any) {
       if (error.code !== '40') {
         // Ignore 40 errors no messgaes found
-        console.error('Error in incoming SMS job:', error);
+        console.error(
+          'Empty inbox startdatestartdate:',
+          startdate + ' enddate:',
+          enddate,
+        );
+      } else {
+        console.error('Error getting incoming messages:', error);
+        throw error;
       }
-      console.error('Error getting incoming messages:', error);
-      throw error;
     }
   }
 }

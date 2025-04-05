@@ -28,10 +28,7 @@ class OpenAIService {
         tools: [{ type: 'web_search_preview', search_context_size: 'low' }],
         input: [{ role: 'system', content: prompt }],
       });
-      const textResponse: any = response.output.find(
-        (x) => x.type === 'message',
-      )?.content[0];
-      return textResponse.text || null;
+      return response;
     } catch (error: any) {
       console.error('Error calling OpenAI:', error.message);
       throw new Error(`Failed to get response from OpenAI: ${error.message}`);
