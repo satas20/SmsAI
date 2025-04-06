@@ -42,8 +42,8 @@ class SMSService {
   }
 
   public async getIncomingMessages(
-    startdate: string,
-    enddate: string,
+    startdate?: string,
+    enddate?: string,
   ): Promise<any> {
     try {
       const smsInboxPayload: SmsInboxPayload = {};
@@ -53,7 +53,7 @@ class SMSService {
       const messages = await this.netgsm.getInbox(smsInboxPayload);
       return messages.messages || []; // Return messages or an empty array if none found
     } catch (error: any) {
-      if (error.code !== '40') {
+      if (error.code === '40') {
         // Ignore 40 errors no messgaes found
         console.log(
           'Empty inbox startdatestartdate:',

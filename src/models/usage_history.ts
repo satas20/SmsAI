@@ -4,29 +4,33 @@ class UsageHistory extends Model {
   static table = 'usage_history';
   static fields = {
     id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
       primaryKey: true,
     },
     userId: {
-      type: DataTypes.UUID,
+      type: DataTypes.STRING,
       allowNull: false,
-      references: {
-        model: 'users',
-        key: 'id',
-      },
     },
-    action: {
-      type: DataTypes.STRING(255),
+    phoneNumber: {
+      type: DataTypes.STRING,
       allowNull: false,
     },
     creditsUsed: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    timestamp: {
-      type: DataTypes.DATE,
+    action: {
+      type: DataTypes.STRING(255),
       allowNull: false,
+    },
+    message: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    response: {
+      type: DataTypes.TEXT,
+      allowNull: true,
     },
   };
 

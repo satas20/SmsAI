@@ -18,9 +18,10 @@ export class AuthService {
       return null;
     }
     const userService = new UserService();
-    const user = await userService.findUserByPhoneNumber(phoneNumber);
+    let user = await userService.findUserByPhoneNumber(phoneNumber);
     if (!user) {
-      await userService.createNewUser(phoneNumber);
+      const result = await userService.createNewUser(phoneNumber);
+      user = result.user;
     }
     const userId = user?.getDataValue('id');
     // Generate JWT

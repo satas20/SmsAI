@@ -3,10 +3,11 @@ import { DataTypes, Model } from 'sequelize';
 class OTP extends Model {
   static table = 'otps';
   static fields = {
-    otpId: {
+    id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      unique: true,
     },
     phoneNumber: {
       type: DataTypes.STRING,
@@ -14,6 +15,7 @@ class OTP extends Model {
     },
     otp: {
       type: DataTypes.STRING,
+      unique: true,
       allowNull: false,
     },
     expiresAt: {

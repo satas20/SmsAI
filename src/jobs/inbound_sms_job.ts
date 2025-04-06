@@ -9,7 +9,7 @@ const smsService = new SMSService();
 
 const runInboundSMSJob = () => {
   // Schedule the job to run every minute
-  cron.schedule('* * * * *', async () => {
+  cron.schedule('*/10 * * * * *', async () => {
     console.log('Running incoming SMS job...');
 
     try {
@@ -28,17 +28,18 @@ const runInboundSMSJob = () => {
 
       const startdate = formatDate(new Date(Date.now() - 60 * 1000)); // 1 minute ago
       const enddate = formatDate(new Date()); // Now
-      const incomingMessages = await smsService.getIncomingMessages(
-        startdate,
-        enddate,
-      );
+      // const incomingMessages = await smsService.getIncomingMessages(
+      //   startdate,
+      //   enddate,
+      // );
+      const incomingMessages = await smsService.getIncomingMessages();
 
-      if (incomingMessages.length === 0) {
+      if (!incomingMessages) {
         console.log('No new incoming messages.');
         return;
       }
 
-      console.log(`Fetched ${incomingMessages.length} incoming messages.`);
+      console.log('Incoming messages:', incomingMessages);
 
       // Send each message to Kafka
       type IncomingMessage = {
@@ -50,23 +51,25 @@ const runInboundSMSJob = () => {
         gonderen: string;
       };
 
-      for (const message of incomingMessages) {
-        const kafkaMessage = {
-          phoneNumber: message.gonderen,
-          jobId: message.gorevId,
-          id: message.id,
-          message: message.mesaj,
-          timestamp: message.kayittar,
-          operator: message.operator,
-        };
+      const kafkaMessages = incomingMessages.map(
+        (message: IncomingMessage) => ({
+          value: JSON.stringify({
+            phoneNumber: message.gonderen,
+            jobId: message.gorevId,
+            id: message.id,
+            message: message.mesaj,
+            timestamp: message.kayittar,
+            operator: message.operator,
+          }),
+        }),
+      );
 
-        await kafkaProducer.send({
-          topic: 'sms-inbound',
-          messages: [{ value: JSON.stringify(kafkaMessage) }],
-        });
+      await kafkaProducer.send({
+        topic: 'sms-inbound',
+        messages: kafkaMessages,
+      });
 
-        console.log(`Sent message to Kafka: ${JSON.stringify(kafkaMessage)}`);
-      }
+      console.log(`Sent ${kafkaMessages.length} messages to Kafka`);
     } catch (error: any) {
       console.error('Error in incoming SMS job:', error);
     }

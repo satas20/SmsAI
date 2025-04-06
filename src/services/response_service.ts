@@ -1,7 +1,11 @@
 import OpenAIService from './openai_service';
 import { removeLinks } from '../utils/remove_links';
-import { SystemMessages } from '../utils/constants';
-
+import { CreditCosts, SystemMessages } from '../utils/constants';
+import { UserService } from './user_service';
+import { User } from '../models/user';
+import { UserSubscription } from '../models/user_subscription';
+import { UsageHistory } from '../models/usage_history';
+import SMSService from './sms_service';
 type KafkaMessage = {
   phoneNumber: string;
   jobId: string;
@@ -35,7 +39,19 @@ export class ResponseService {
       console.log(
         `Response Service: Processing message: ${JSON.stringify(kafkaMessage)}`,
       );
+      const userService = new UserService();
 
+      const credits = await this.checkUserCredits(kafkaMessage);
+      if (credits <= 0) {
+        console.log(
+          `Response Service: No credits left for user ${kafkaMessage.phoneNumber}.`,
+        );
+        return 'No credits left. Please recharge your account.';
+      }
+      const user = await userService.findUserByPhoneNumber(
+        kafkaMessage.phoneNumber,
+      );
+      const userId = user?.getDataValue('id');
       // Generate a response using OpenAI
       const openaiResponse = await this.openaiService.createResponse(
         kafkaMessage.message +
@@ -53,24 +69,74 @@ export class ResponseService {
       const cleanedMessage = removeLinks(textResponse);
       console.log(`Response Service: Cleaned message: ${cleanedMessage}`);
 
-      await this.updateCredits(kafkaMessage, isWebSearch);
-      const finallMessage = await this.addCredditInfo(cleanedMessage);
+      const remainingCredits = await this.updateCredits(userId, isWebSearch);
+      const finallMessage =
+        cleanedMessage + '    remainingCredits: ' + remainingCredits;
+
+      // Log usage history
+      await this.logUsage(
+        userId,
+        kafkaMessage.phoneNumber,
+        isWebSearch ? CreditCosts.WEB_SEARCH : CreditCosts.NORMAL_RESPONSE,
+        'response',
+        kafkaMessage.message,
+        finallMessage,
+      );
 
       return finallMessage;
     } catch (error) {
+      const userService = new UserService();
+      const user = await userService.findUserByPhoneNumber(
+        kafkaMessage.phoneNumber,
+      );
+      const userId = user?.getDataValue('id');
+      await this.logUsage(
+        userId,
+        kafkaMessage.phoneNumber,
+        0,
+        'error',
+        kafkaMessage.message,
+        'something went wrong',
+      );
       console.error('Response Service: Error processing response:', error);
     }
   }
-  private async updateCredits(
-    kafkaMessage: KafkaMessage,
-    isWebSearch: boolean,
-  ) {
-    //TODO: look up to DBand get remainingCredits and decrement it
+  async checkUserCredits(kafkaMessage: KafkaMessage) {
+    const userService = new UserService();
+    const user = await userService.findUserByPhoneNumber(
+      kafkaMessage.phoneNumber,
+    );
+    if (!user) {
+      const { user, userSubscription } = await userService.createNewUser(
+        kafkaMessage.phoneNumber,
+      );
+      return userSubscription.getDataValue('remainingCredits');
+    }
+    const userId = user?.getDataValue('id');
+    const userSubscription =
+      await userService.getUserSubscriptionWithUserId(userId);
+    if (!userSubscription) {
+      const { user, userSubscription } = await userService.createNewUser(
+        kafkaMessage.phoneNumber,
+      );
+      return userSubscription.getDataValue('remainingCredits');
+    }
+    const remainingCredits = userSubscription.getDataValue('remainingCredits');
+    return remainingCredits;
   }
-  private addCredditInfo(cleanedMessage: string) {
-    //TODO: look up to DBand get remainingCredits and add it to the message
-    return cleanedMessage;
+  private async updateCredits(userId: string, isWebSearch: boolean) {
+    const userService = new UserService();
+    const userSubscription =
+      await userService.getUserSubscriptionWithUserId(userId);
+    const cost = isWebSearch
+      ? CreditCosts.WEB_SEARCH
+      : CreditCosts.NORMAL_RESPONSE;
+    const remainingCredits = userSubscription?.getDataValue('remainingCredits');
+    const newCredits = remainingCredits - cost;
+    await userService.updateUserCreditsWithUserId(userId, newCredits);
+    return newCredits;
   }
+
   private isSystemMessage(message: any): boolean {
     return Object.values(SystemMessages).includes(message);
   }
@@ -87,5 +153,28 @@ export class ResponseService {
     }
 
     return { textResponse, isWebSearch };
+  }
+
+  public async logUsage(
+    userId: string,
+    phoneNumber: string,
+    creditsUsed: number,
+    action: string,
+    message: string,
+    response: string,
+  ): Promise<void> {
+    try {
+      const usageHistory = await UsageHistory.create({
+        userId,
+        phoneNumber,
+        creditsUsed,
+        action,
+        message,
+        response,
+      });
+      console.log('Usage history logged:', usageHistory);
+    } catch (error) {
+      console.error('Error logging usage history:', error);
+    }
   }
 }

@@ -25,7 +25,7 @@ class OpenAIService {
     try {
       const response = await this.openai.responses.create({
         model: 'gpt-4o',
-        tools: [{ type: 'web_search_preview', search_context_size: 'low' }],
+        // tools: [{ type: 'web_search_preview', search_context_size: 'low' }],
         input: [{ role: 'system', content: prompt }],
       });
       return response;

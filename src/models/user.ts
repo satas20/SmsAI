@@ -4,9 +4,10 @@ class User extends Model {
   static table = 'users';
   static fields = {
     id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
       primaryKey: true,
+      unique: true,
     },
     phoneNumber: {
       type: DataTypes.STRING(15),

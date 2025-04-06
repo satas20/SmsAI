@@ -17,6 +17,9 @@ export class AuthController {
 
     try {
       const otp = await OTPService.generateOTP(phoneNumber);
+      if (!otp) {
+        return res.status(400).json({ message: 'OTP already sent.' });
+      }
       const smsService = new SMSService();
       const smsResponse = await smsService.sendOTP(
         `Your OTP is: ${otp}`,
@@ -43,9 +46,7 @@ export class AuthController {
     }
 
     try {
-      const isValid = await OTPService.validateOTP(phoneNumber, otp);
-
-      const token = await AuthService.verifyOTP(otp, phoneNumber);
+      const token = await AuthService.verifyOTP(phoneNumber, otp);
       if (!token) {
         return res.status(401).json({ message: 'Invalid OTP.' });
       }
