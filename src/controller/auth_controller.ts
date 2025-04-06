@@ -1,0 +1,58 @@
+import { Request, Response } from 'express';
+import { OTPService } from '../services/otp_service';
+import { JWTService } from '../services/jwt_service';
+import { User } from '../models/user';
+import SMSService from '../services/sms_service';
+import { AuthService } from '../services/auth_service';
+export class AuthController {
+  /**
+   * Handles OTP request
+   */
+  public async requestOTP(req: Request, res: Response): Promise<any> {
+    const { phoneNumber } = req.body;
+
+    if (!phoneNumber) {
+      return res.status(400).json({ message: 'Phone number is required.' });
+    }
+
+    try {
+      const otp = await OTPService.generateOTP(phoneNumber);
+      const smsService = new SMSService();
+      const smsResponse = await smsService.sendOTP(
+        `Your OTP is: ${otp}`,
+        phoneNumber,
+      );
+
+      res.status(200).json({ message: 'OTP sent successfully.' });
+    } catch (error) {
+      console.error('Error r    equesting OTP:', error);
+      res.status(500).json({ message: 'Failed to send OTP.' });
+    }
+  }
+
+  /**
+   * Handles OTP verification
+   */
+  public async verifyOTP(req: Request, res: Response): Promise<any> {
+    const { phoneNumber, otp } = req.body;
+
+    if (!phoneNumber || !otp) {
+      return res
+        .status(400)
+        .json({ message: 'Phone number and OTP are required.' });
+    }
+
+    try {
+      const isValid = await OTPService.validateOTP(phoneNumber, otp);
+
+      const token = await AuthService.verifyOTP(otp, phoneNumber);
+      if (!token) {
+        return res.status(401).json({ message: 'Invalid OTP.' });
+      }
+      res.status(200).json({ token });
+    } catch (error) {
+      console.error('Error verifying OTP:', error);
+      res.status(500).json({ message: 'Failed to verify OTP.' });
+    }
+  }
+}

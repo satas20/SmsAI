@@ -55,7 +55,7 @@ class SMSService {
     } catch (error: any) {
       if (error.code !== '40') {
         // Ignore 40 errors no messgaes found
-        console.error(
+        console.log(
           'Empty inbox startdatestartdate:',
           startdate + ' enddate:',
           enddate,
@@ -64,6 +64,41 @@ class SMSService {
         console.error('Error getting incoming messages:', error);
         throw error;
       }
+    }
+  }
+  public async sendOTP(
+    message: string,
+    phoneNumber: string,
+    appKey?: string,
+  ): Promise<any> {
+    try {
+      const xmlData = `<?xml version="1.0"?>
+  <mainbody>
+     <header>
+         <usercode>${process.env.NETGSM_USERNAME}</usercode>
+         <password>${process.env.NETGSM_PASSWORD}</password>
+         <msgheader>${process.env.NETGSM_USERNAME}</msgheader>
+         ${appKey ? `<appkey>${appKey}</appkey>` : ''}
+     </header>
+     <body>
+         <msg><![CDATA[${message}]]></msg>
+         <no>${phoneNumber}</no>
+     </body>
+  </mainbody>`;
+
+      const response = await fetch('https://api.netgsm.com.tr/sms/send/otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/xml',
+        },
+        body: xmlData,
+      });
+
+      const result = await response.text();
+      return result;
+    } catch (error) {
+      console.error('Error sending OTP:', error);
+      throw error;
     }
   }
 }

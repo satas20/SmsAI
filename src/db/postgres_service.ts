@@ -1,6 +1,12 @@
-import { Sequelize } from "sequelize";
-import { User } from "../index";
-import dotenv from "dotenv";
+import { Sequelize } from 'sequelize';
+import {
+  User,
+  OTP,
+  UsageHistory,
+  Subscription,
+  UserSubscription,
+} from '../index';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
@@ -21,7 +27,7 @@ class PostgresDB {
       username,
       password,
       database,
-      dialect: "postgres",
+      dialect: 'postgres',
       logging: false,
     });
     this.initializeModels();
@@ -39,7 +45,7 @@ class PostgresDB {
   }
 
   private async initializeModels() {
-    const models = [User]; // Add all models here
+    const models = [User, OTP, UsageHistory, Subscription, UserSubscription]; // Add all models here
     for (const model of models) {
       await model.initModel(this.sequelize);
     }

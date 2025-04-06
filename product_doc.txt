@@ -1,0 +1,153 @@
+# Overview
+
+![Demonstration](attachment:dedaa8da-5a14-4c48-ae22-e8eac917205a:e0e0a241-2fab-4406-809b-3b45ca84ebee.png)
+
+Demonstration
+
+SMS GPT is an innovative tool designed for users who have SMS capabilities but limited or no internet access. This service bridges the digital divide by enabling access to AI assistance through simple text messages.
+
+Example use cases: during mandatory military service in Turkey, where soldiers often have restricted internet access, SMS GPT can be invaluable. Service members can use basic SMS to:
+
+- Can use AI directly but with SMS
+- Search something in Web using AI
+
+This solution ensures that even in situations with limited connectivity, users can still benefit from Internet  with AI through conventional SMS technology. 
+
+**Simmilar Apps:**  [*smsGPT/tr](https://www.smsgpt.com.tr/index.php#)*  Not active*, [smsGPT.co](https://smsgpt.co/)*  
+
+Additionally, there is a product for the same target audience (people with limited or no internet access). Since this audience cannot access chat apps like Telegram and WhatsApp, we offer SMS Forwarder. 
+
+[Sub Idea Whatsap || Telegram  → SMS Forwarder](https://www.notion.so/Sub-Idea-Whatsap-Telegram-SMS-Forwarder-1c58620c736d80c095fbd00628750db8?pvs=21)
+
+---
+
+<aside>
+💼
+
+# Market & Business Analysis
+
+</aside>
+
+<aside>
+
+## **Target Users**
+
+- Primary:
+    - Military service:   1.5 million  People / Per Year
+    
+    <aside>
+    🪖
+    
+    > The number of citizens reaching military age each year in Turkey.
+    > 
+    </aside>
+    
+    - Remote area residents: Unknown
+    - Users in internet-restricted regions: Unknown
+- Secondary: Travelers, disaster-affected individuals, emergency workers
+
+## **Revenue Model**
+
+- Per-message pricing and subscription plans
+- Enterprise packages for organizations
+
+**Subscription Plans**
+
+Simple usage cost **1 credits**, Web search uses **2 credits**, 
+
+- **Free pack:**  0/month 10 credits without websearch.
+- **Standard Pack**: 150 TL/month, includes 30 credits.
+- **Pro Pack**: 300 TL/month, includes 70 credits .
+
+Users should be able to pay while on military service . Solution can be EFT and manually adding the credits.
+
+## **Operating Costs**
+
+Response with websearch: Outbound SMS + AI API costs = 0,0871 TL + $0.035  =   COST <  1.5TL (0,13 $ )per Message
+
+Response without websearch: Outbound SMS + AI API costs =0,0871
+
+- SMS gateway services.  0,0871 TL / SMS
+- AI API usage.  Web search  $ 0.035/ Per Prompt
+
+> ***OpenAI,*** If the prompt **"What happened in Turkey today?"** with **web search:**
+> 
+> - **Search cost:** **$0.035** (GPT-4o, default context)
+> - **Model cost:** **$0.0001** (token cost)
+> - **Total cost:** **$0.0351**(~3.5 cent)
+- Infrastructure hosting.  *Free for now*
+
+To lower the API cost [Gpt functions](https://platform.openai.com/docs/guides/function-calling?api-mode=responses&example=search-knowledge-base) can used instead of searching the web for Currenct, Weather or News also cheaper models should be researched in future. 
+
+## **Future Development Roadmap**
+
+- **Phase 1:**  Basic SMS-AI interaction, Basic Login and subscrition
+- **Phase 2:** Advanced features such as integrating MMS for other AI features other then text generation (Image generation, Audio recegnation).
+- **Phase 3:** Enterprise solutions, International expansion
+
+## **Market Overview**
+
+- Focus on areas with limited connectivity
+- Military installations as key market
+- Competition from other SMS-AI solutions
+
+## **Marketing  Strategy**
+
+- Social media campaigns targeting areas with poor internet connectivity
+- Partnerships with Asker kolisi and other Military service organizations
+- Content marketing highlighting real-world use cases
+</aside>
+
+---
+
+<aside>
+🤖
+
+# Technical Implementation
+
+</aside>
+
+<aside>
+
+## Tech Stack
+
+### Backend
+
+- **Framework**: NodeJS
+- **Database**: MongoDB
+- **Message Queue**: RabbitMQ/Kafka
+- **SMS Gateway**:  [NetGSM](https://www.netgsm.com.tr/fiyatlar/toplu-sms) (Turkish) / [Vonage](www.vonage.com/contact-us/) .  2-Way SMS for turkey is very rare
+- **AI Integration**: OpenAI GPT-4, Llama, DeepSeek
+- **Deployment:** Docker, Kubernetes
+
+### Frontend
+
+- **Framework**: Next.js, React
+- **UI**: Tailwind CSS, Material UI/Chakra UI
+- **Auth**: Phone number based
+- **Payments**: Stripe (**2.9% - %6 +30¢**  ), PayTR(**%1 - %11)**, or İyzico (**%4,29 + 0,25 TL)**
+- 
+
+**2.9% + 30¢**
+
+per successful transaction for domestic cards
+
++ 0.5%
+
+for [manually entered cards](https://support.stripe.com/questions/manually-entered-card-payments)
+
++ 1.5%
+
+for international cards
+
++ 1%
+
+if [currency conversion](https://docs.stripe.com/currencies/conversions) is required
+
+- **Build & Analytics:** Webpack, Google Analytics
+
+## Arcitectural Design
+
+![image.png](attachment:8972098a-0642-4fa3-9ae3-037c139e8338:image.png)
+
+</aside>
