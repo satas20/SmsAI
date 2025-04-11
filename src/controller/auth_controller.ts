@@ -16,17 +16,28 @@ export class AuthController {
     }
 
     try {
-      const otp = await OTPService.generateOTP(phoneNumber);
-      if (!otp) {
-        return res.status(400).json({ message: 'OTP already sent.' });
+      const { otp, isOtpNew } = await OTPService.generateOTP(phoneNumber);
+      const expiresAt = otp.getDataValue('expiresAt');
+      const currentTime = new Date();
+      const leftTime = expiresAt.getTime() - currentTime.getTime();
+      const leftTimeInSeconds = Math.floor(leftTime / 1000); // Convert milliseconds to seconds
+      if (!isOtpNew) {
+        return res.status(431).json({
+          message: 'OTP already sent.',
+          expiresIn: leftTimeInSeconds,
+        });
       }
+      const otpText = otp.getDataValue('otp');
       const smsService = new SMSService();
       const smsResponse = await smsService.sendOTP(
-        `Your OTP is: ${otp}`,
+        `Your OTP is: ${otpText}`,
         phoneNumber,
       );
 
-      res.status(200).json({ message: 'OTP sent successfully.' });
+      res.status(200).json({
+        message: 'OTP already sent.',
+        expiresIn: leftTimeInSeconds,
+      });
     } catch (error) {
       console.error('Error r    equesting OTP:', error);
       res.status(500).json({ message: 'Failed to send OTP.' });

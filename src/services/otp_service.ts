@@ -3,14 +3,16 @@ import { OTP } from '../models/otp';
 import { Op } from 'sequelize';
 
 export class OTPService {
-  private static OTP_EXPIRY = 3000; // OTP expiry time in seconds (5 minutes)
+  private static OTP_EXPIRY = 150000; // OTP expiry time in milliseconds (5 minutes)
 
   /**
    * Generates a 6-digit OTP, stores it in the database, and returns it.
    */
-  public static async generateOTP(phoneNumber: string): Promise<string | null> {
+  public static async generateOTP(
+    phoneNumber: string,
+  ): Promise<{ otp: OTP; isOtpNew: boolean }> {
     const otp = crypto.randomInt(100000, 999999).toString(); // Generate a 6-digit OTP
-    const expiresAt = new Date(Date.now() + this.OTP_EXPIRY * 1000); // Set expiry time
+    const expiresAt = new Date(Date.now() + this.OTP_EXPIRY); // Set expiry time
 
     // Store OTP in the database
     const existingOTP = await OTP.findOne({
@@ -22,10 +24,10 @@ export class OTPService {
       },
     });
     if (existingOTP) {
-      return null;
+      return { otp: existingOTP, isOtpNew: false }; // Return existing OTP if not expired
     } else {
-      await OTP.create({ phoneNumber, otp, expiresAt });
-      return otp;
+      const newOtp = await OTP.create({ phoneNumber, otp, expiresAt });
+      return { otp: newOtp, isOtpNew: true };
     }
   }
 

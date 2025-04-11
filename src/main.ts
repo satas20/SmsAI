@@ -3,21 +3,25 @@ import { PostgresDB } from './db/postgres_service';
 import { connectKafkaProducer } from './kafka/kafka';
 import runInboundSMSJob from './jobs/inbound_sms_job';
 import { startResponseWorker } from './jobs/response_worker';
-import SMSService from './services/sms_service';
 import router from './routes/auth_routes';
-// Initialize Express
+import cors from 'cors';
+import dotenv from 'dotenv';
 
-// const smsS = new SMSService(); // Initialize the SMS service
-// const result = await smsS.sendOTP('12345', '5327613050');
-
+dotenv.config(); // Load environment variables from .env file
 const app = express();
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL, // Replace with your frontend's URL
+    methods: ['GET', 'POST'], // Allowed HTTP methods
+    credentials: true, // Allow cookies if needed
+  }),
+);
 app.use(express.json()); // Middleware to parse JSON requests
 app.use('/auth', router);
 // Define a simple health check route
 app.get('/health', (req, res: Response) => {
   res.status(200).json({ status: 'OK', message: 'Service is running!' });
 });
-
 try {
   // Initialize the database
   const db = PostgresDB.getInstance();
