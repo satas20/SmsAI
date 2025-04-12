@@ -9,7 +9,7 @@ class UsageHistory extends Model {
       primaryKey: true,
     },
     userId: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     phoneNumber: {

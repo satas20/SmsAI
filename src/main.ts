@@ -3,7 +3,9 @@ import { PostgresDB } from './db/postgres_service';
 import { connectKafkaProducer } from './kafka/kafka';
 import runInboundSMSJob from './jobs/inbound_sms_job';
 import { startResponseWorker } from './jobs/response_worker';
-import router from './routes/auth_routes';
+import authRouter from './routes/auth_routes';
+import dashBoardRouter from './routes/dashboard_routes';
+
 import cors from 'cors';
 import dotenv from 'dotenv';
 
@@ -17,7 +19,8 @@ app.use(
   }),
 );
 app.use(express.json()); // Middleware to parse JSON requests
-app.use('/auth', router);
+app.use('/auth', authRouter);
+app.use('/dashboard', dashBoardRouter); // Assuming you have a dashboard route as well
 // Define a simple health check route
 app.get('/health', (req, res: Response) => {
   res.status(200).json({ status: 'OK', message: 'Service is running!' });

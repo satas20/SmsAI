@@ -35,7 +35,7 @@ export class AuthController {
       );
 
       res.status(200).json({
-        message: 'OTP already sent.',
+        message: 'OTP sent.',
         expiresIn: leftTimeInSeconds,
       });
     } catch (error) {
