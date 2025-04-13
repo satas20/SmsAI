@@ -32,13 +32,47 @@ export class DashboardService {
         credits: subscriptionDetails?.getDataValue('credits'),
         id: subscription?.getDataValue('id'),
         subscriptionId: subscription?.getDataValue('subscriptionId'),
-        startDate: subscription?.getDataValue('startDate'),
-        endDate: subscription?.getDataValue('endDate'),
+        startDate: subscription?.getDataValue('startDate')
+          ? new Date(subscription.getDataValue('startDate')).toLocaleDateString(
+              'tr-TR',
+            )
+          : null,
+        endDate: subscription?.getDataValue('endDate')
+          ? new Date(subscription.getDataValue('endDate')).toLocaleDateString(
+              'tr-TR',
+            )
+          : null,
         remainingCredits: subscription?.getDataValue('remainingCredits'),
         isActive: subscription?.getDataValue('isActive'),
-        createdAt: subscription?.getDataValue('createdAt'),
-        updatedAt: subscription?.getDataValue('updatedAt'),
+        createdAt: subscription?.getDataValue('createdAt')
+          ? new Date(subscription.getDataValue('createdAt')).toLocaleDateString(
+              'tr-TR',
+            )
+          : null,
+        updatedAt: subscription?.getDataValue('updatedAt')
+          ? new Date(subscription.getDataValue('updatedAt')).toLocaleDateString(
+              'tr-TR',
+            )
+          : null,
       };
+      const formatedUsageHistory = usageHistory.map((history) => {
+        return {
+          id: history.getDataValue('id'),
+          userId: history.getDataValue('userId'),
+          type: history.getDataValue('type'),
+          amount: history.getDataValue('amount'),
+          createdAt: history.getDataValue('createdAt')
+            ? new Date(history.getDataValue('createdAt')).toLocaleDateString(
+                'tr-TR',
+              )
+            : null,
+          updatedAt: history.getDataValue('updatedAt')
+            ? new Date(history.getDataValue('updatedAt')).toLocaleDateString(
+                'tr-TR',
+              )
+            : null,
+        };
+      });
 
       return {
         subscription: finalSubscription,
