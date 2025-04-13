@@ -5,6 +5,7 @@ import {
   UsageHistory,
   Subscription,
   UserSubscription,
+  UserSubscriptionLog,
 } from '../index';
 import dotenv from 'dotenv';
 
@@ -46,7 +47,14 @@ class PostgresDB {
   }
 
   private async initializeModels() {
-    const models = [User, OTP, UsageHistory, Subscription, UserSubscription]; // Add all models here
+    const models = [
+      User,
+      OTP,
+      UsageHistory,
+      Subscription,
+      UserSubscription,
+      UserSubscriptionLog,
+    ]; // Add all models here
     for (const model of models) {
       await model.initModel(this.sequelize);
     }

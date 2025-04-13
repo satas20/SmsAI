@@ -22,6 +22,12 @@ export class UserService {
       remainingCredits: credits,
       isActive: true,
     });
+    const UserSubscriptionLog = await UserSubscription.create({
+      userId: userId,
+      subscriptionId: subscriptionId,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+    });
     const smsService = new SMSService();
     await smsService.sendSMS(
       'Welcome to SMS-AI! You have been given free ' +
