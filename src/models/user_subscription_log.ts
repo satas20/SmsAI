@@ -32,10 +32,6 @@ class UserSubscriptionLog extends Model {
       type: DataTypes.DATE,
       allowNull: false,
     },
-    isActive: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
   };
 
   static initModel(sequelize: any) {

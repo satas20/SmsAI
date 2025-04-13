@@ -2,6 +2,7 @@ import { User } from '../models/user';
 import { UserSubscription } from '../models/user_subscription';
 import { Subscription } from '../models/subscription';
 import SMSService from './sms_service';
+import { UserSubscriptionLog } from '../models/user_subscription_log';
 export class UserService {
   public async createNewUser(phoneNumber: string) {
     const user = await User.create({
@@ -22,7 +23,7 @@ export class UserService {
       remainingCredits: credits,
       isActive: true,
     });
-    const UserSubscriptionLog = await UserSubscription.create({
+    const userSubscriptionLog = await UserSubscriptionLog.create({
       userId: userId,
       subscriptionId: subscriptionId,
       startDate: new Date(),
