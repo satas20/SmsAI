@@ -1,6 +1,7 @@
 import { UserSubscription } from '../models/user_subscription';
 import { UsageHistory } from '../models/usage_history';
 import { Subscription } from '../models/subscription';
+import { PayTRService } from './paytr_service';
 
 export class DashboardService {
   /**
@@ -76,11 +77,52 @@ export class DashboardService {
 
       return {
         subscription: finalSubscription,
-        usageHistory,
+        formatedUsageHistory,
       };
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       throw new Error('Failed to fetch dashboard data');
+    }
+  }
+
+  public async initPurchase(
+    userId: number,
+    subscriptionId: number,
+    paymentInfo: any,
+  ): Promise<any> {
+    try {
+      // Fetch subscription details
+      const subscription = await Subscription.findOne({
+        where: { id: subscriptionId },
+      });
+      if (!subscription) {
+        throw new Error('Subscription not found');
+      }
+      const payment_amount = Number(subscription.getDataValue('price'));
+      const paytr = new PayTRService();
+      const merchant_oid = `${userId}${subscriptionId}${Date.now()}`.replace(
+        /[^a-zA-Z0-9]/g,
+        '',
+      );
+      const user_basket = JSON.stringify([
+        {
+          id: subscriptionId,
+          name: subscription.getDataValue('name'),
+          price: subscription.getDataValue('price'),
+          quantity: 1,
+        },
+      ]);
+      paymentInfo.merchant_oid = merchant_oid;
+      paymentInfo.payment_amount = payment_amount;
+      paymentInfo.user_basket = user_basket;
+      const iFrameToken = await paytr.generateIframeToken(paymentInfo);
+      if (!iFrameToken) {
+        throw new Error('Failed to generate iFrame token');
+      }
+      return iFrameToken;
+    } catch (error) {
+      console.error('Error purchasing subscription:', error);
+      throw new Error('Failed to purchase subscription');
     }
   }
 }
