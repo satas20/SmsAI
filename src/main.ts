@@ -5,17 +5,28 @@ import runInboundSMSJob from './jobs/inbound_sms_job';
 import { startResponseWorker } from './jobs/response_worker';
 import authRouter from './routes/auth_routes';
 import dashBoardRouter from './routes/dashboard_routes';
-
+import requestIp from 'request-ip'; // Middleware to get client IP address
 import cors from 'cors';
 import dotenv from 'dotenv';
 
 dotenv.config(); // Load environment variables from .env file
 const app = express();
+app.use(requestIp.mw());
+const allowedOrigins = ['http://localhost:3002', 'http://172.19.48.1:3002'];
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL, // Replace with your frontend's URL
-    methods: ['GET', 'POST'], // Allowed HTTP methods
-    credentials: true, // Allow cookies if needed
+    origin: (origin, callback) => {
+      console.log('Origin:', origin); // Log the origin of the request
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.error('Blocked by CORS:', origin);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST'],
+    credentials: true,
   }),
 );
 app.use(express.json()); // Middleware to parse JSON requests

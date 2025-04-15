@@ -56,12 +56,17 @@ export class DashboardService {
             )
           : null,
       };
+
       const formatedUsageHistory = usageHistory.map((history) => {
         return {
           id: history.getDataValue('id'),
           userId: history.getDataValue('userId'),
           type: history.getDataValue('type'),
-          amount: history.getDataValue('amount'),
+          action: history.getDataValue('action'),
+          response: history.getDataValue('response'),
+          message: history.getDataValue('message'),
+          creditUsed: history.getDataValue('creditUsed'),
+          phoneNumber: history.getDataValue('phoneNumber'),
           createdAt: history.getDataValue('createdAt')
             ? new Date(history.getDataValue('createdAt')).toLocaleDateString(
                 'tr-TR',
@@ -77,7 +82,7 @@ export class DashboardService {
 
       return {
         subscription: finalSubscription,
-        formatedUsageHistory,
+        usageHistory: formatedUsageHistory,
       };
     } catch (error) {
       console.error('Error fetching dashboard data:', error);

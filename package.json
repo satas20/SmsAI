@@ -15,6 +15,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "@types/node-cron": "^3.0.11",
+    "@types/request-ip": "^0.0.41",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
   },
@@ -34,6 +35,7 @@
     "pg": "^8.14.1",
     "pg-hstore": "^2.3.4",
     "prettier": "^3.5.3",
+    "request-ip": "^3.3.0",
     "sequelize": "^6.37.7",
     "tsx": "^4.19.3"
   }
