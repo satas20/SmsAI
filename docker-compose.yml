@@ -68,5 +68,25 @@ services:
       kafka:
         condition: service_healthy
 
+  app:
+    build:
+      context: . # Use the current directory for the Dockerfile
+      dockerfile: Dockerfile
+    ports:
+      - '3001:3001'
+    environment: POSTGRES_HOST=postgres
+      POSTGRES_PORT=5432
+      POSTGRES_USER=username
+      POSTGRES_PASSWORD=password
+      POSTGRES_DB=smsai
+      KAFKA_BROKER=kafka:9092
+      JWT_SECRET=REDACTED
+      FRONTEND_URL=http://localhost:3002
+      PAYTR_MERCHANT_ID=REDACTED
+      PAYTR_MERCHANT_KEY=REDACTED
+      PAYTR_MERCHANT_SALT=REDACTED
+    depends_on:
+      - postgres
+      - kafka
 volumes:
   postgres_data:
