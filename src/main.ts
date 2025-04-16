@@ -5,6 +5,7 @@ import runInboundSMSJob from './jobs/inbound_sms_job';
 import { startResponseWorker } from './jobs/response_worker';
 import authRouter from './routes/auth_routes';
 import dashBoardRouter from './routes/dashboard_routes';
+import purchaseRouter from './routes/purchase_routes'; // Assuming you have a purchase router
 import requestIp from 'request-ip'; // Middleware to get client IP address
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -31,7 +32,8 @@ app.use(
 );
 app.use(express.json()); // Middleware to parse JSON requests
 app.use('/auth', authRouter);
-app.use('/dashboard', dashBoardRouter); // Assuming you have a dashboard route as well
+app.use('/dashboard', dashBoardRouter);
+app.use('/purchase', purchaseRouter); // Assuming you have a purchase router
 // Define a simple health check route
 app.get('/health', (req, res: Response) => {
   res.status(200).json({ status: 'OK', message: 'Service is running!' });

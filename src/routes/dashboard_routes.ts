@@ -10,8 +10,4 @@ router.get('/info', authenticateJWT, (req, res) => {
   dashboardController.getDashboardInfo(req, res);
 });
 
-router.post('/initPurchase', authenticateJWT, (req, res) => {
-  dashboardController.initPurchase(req, res);
-});
-
 export default router;
