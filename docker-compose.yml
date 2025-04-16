@@ -74,17 +74,19 @@ services:
       dockerfile: Dockerfile
     ports:
       - '3001:3001'
-    environment: POSTGRES_HOST=postgres
-      POSTGRES_PORT=5432
-      POSTGRES_USER=username
-      POSTGRES_PASSWORD=password
-      POSTGRES_DB=smsai
-      KAFKA_BROKER=kafka:9092
-      JWT_SECRET=SMSAI_SECRET
-      FRONTEND_URL=http://localhost:3002
-      PAYTR_MERCHANT_ID=562077
-      PAYTR_MERCHANT_KEY=qGMad6R1dKyxC1mu
-      PAYTR_MERCHANT_SALT=uEmZENZ3thnCJKg4
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: smsai
+      KAFKA_BROKER: kafka:9092
+      JWT_SECRET: SMSAI_SECRET
+      FRONTEND_URL: http://localhost:3002
+      PAYTR_MERCHANT_ID: 562077
+      PAYTR_MERCHANT_KEY: qGMad6R1dKyxC1mu
+      PAYTR_MERCHANT_SALT: uEmZENZ3thnCJKg4
+
     depends_on:
       - postgres
       - kafka

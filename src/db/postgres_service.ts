@@ -8,7 +8,6 @@ import {
   UserSubscriptionLog,
 } from '../index';
 import dotenv from 'dotenv';
-import { FORCE } from 'sequelize/types/index-hints';
 
 dotenv.config();
 

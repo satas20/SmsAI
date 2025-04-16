@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/main.ts",
-    "debug": "tsx --inspect src/main.ts"
+    "debug": "tsx --inspect src/main.ts",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
