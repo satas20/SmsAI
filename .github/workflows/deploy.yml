@@ -1,0 +1,35 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main # Trigger on push to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up SSH
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      # Step 3: Copy files to EC2
+      - name: Copy files to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -r . ec2-user@${{ secrets. }}:/home/ec2-user/app
+EC2_PUBLIC_IP
+      # Step 4: Deploy on EC2
+      - name: Deploy on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+          cd /home/ec2-user/app
+          docker-compose down
+          docker-compose up -d --build
+          EOF
