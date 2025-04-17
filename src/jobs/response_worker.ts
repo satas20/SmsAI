@@ -4,7 +4,7 @@ import SMSService from '../services/sms_service';
 import OpenAIService from '../services/openai_service';
 const kafka = new Kafka({
   clientId: 'sms-gpt-response-worker',
-  brokers: ['localhost:29092'], // Replace with your Kafka broker address
+  brokers: [process.env.KAFKA_BROKER || 'kafka:9092'],
 });
 
 const kafkaConsumer = kafka.consumer({ groupId: 'sms-gpt-response-group' });

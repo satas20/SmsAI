@@ -1,9 +1,10 @@
 import { Kafka } from 'kafkajs';
 
 const kafka = new Kafka({
-  clientId: 'sms-gpt-producer',
-  brokers: ['localhost:29092'],
+  clientId: 'sms-ai-producer',
+  brokers: [process.env.KAFKA_BROKER || 'kafka:9092'],
 });
+console.log('Kafka broker:', process.env.KAFKA_BROKER || 'kafka:9092');
 
 const kafkaProducer = kafka.producer();
 
