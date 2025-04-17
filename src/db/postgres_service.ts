@@ -61,7 +61,7 @@ class PostgresDB {
   }
 
   public async sync(): Promise<void> {
-    await this.sequelize.sync({ force: false }); //{ alter: true }  { force: true } if you want to drop and recreate tables
+    await this.sequelize.sync({ alter: true }); //{ alter: true }  { force: true } if you want to drop and recreate tables
   }
 }
 

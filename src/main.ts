@@ -13,7 +13,11 @@ import dotenv from 'dotenv';
 dotenv.config(); // Load environment variables from .env file
 const app = express();
 app.use(requestIp.mw());
-const allowedOrigins = ['http://localhost:3002', 'http://172.19.48.1:3002'];
+const allowedOrigins = [
+  'http://localhost:3002',
+  'http://172.19.48.1:3002',
+  'https://smsaifrontend-e3b0f8d6192d.herokuapp.com',
+];
 
 app.use(
   cors({
