@@ -58,18 +58,6 @@ class PostgresDB {
     for (const model of models) {
       await model.initModel(this.sequelize);
     }
-    const SubCount = await Subscription.findAll({});
-    if (SubCount.length === 0) {
-      await Subscription.create({
-        id: 1,
-        name: 'free',
-        price: 0.0,
-        credits: 10,
-        webSearch: false,
-        createdAt: new Date('2025-04-17 15:08:02.824'),
-        updatedAt: new Date('2025-04-17 15:08:02.824'),
-      });
-    }
   }
 
   public async sync(): Promise<void> {

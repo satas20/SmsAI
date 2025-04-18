@@ -9,6 +9,7 @@ import purchaseRouter from './routes/purchase_routes'; // Assuming you have a pu
 import requestIp from 'request-ip'; // Middleware to get client IP address
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { Subscription } from './models/subscription';
 
 dotenv.config(); // Load environment variables from .env file
 const app = express();
@@ -48,7 +49,18 @@ try {
   const db = PostgresDB.getInstance();
   await db.sync();
   console.log('Database synced successfully!');
-
+  const SubCount = await Subscription.findAll({});
+  if (SubCount.length === 0) {
+    await Subscription.create({
+      id: 1,
+      name: 'free',
+      price: 0.0,
+      credits: 10,
+      webSearch: false,
+      createdAt: new Date('2025-04-17 15:08:02.824'),
+      updatedAt: new Date('2025-04-17 15:08:02.824'),
+    });
+  }
   // Connect Kafka producer
   await connectKafkaProducer();
 

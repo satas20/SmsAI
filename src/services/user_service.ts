@@ -14,7 +14,7 @@ export class UserService {
       where: { name: 'free' },
     });
     const credits = freeSub?.getDataValue('credits') || 0;
-    const subscriptionId = freeSub?.getDataValue('id') || null;
+    const subscriptionId = freeSub?.getDataValue('id') || 1;
     const userSubscription = await UserSubscription.create({
       userId: userId, // Replace with actual default subscription ID
       startDate: new Date(),
