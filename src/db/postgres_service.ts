@@ -62,7 +62,7 @@ class PostgresDB {
     if (SubCount.length === 0) {
       await Subscription.create({
         id: 1,
-        name: 'Free',
+        name: 'free',
         price: 0.0,
         credits: 10,
         webSearch: false,
