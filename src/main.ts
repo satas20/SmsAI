@@ -61,6 +61,24 @@ try {
       createdAt: new Date('2025-04-17 15:08:02.824'),
       updatedAt: new Date('2025-04-17 15:08:02.824'),
     });
+    await Subscription.create({
+      id: 2,
+      name: 'standart',
+      price: 150,
+      credits: 100,
+      webSearch: false,
+      createdAt: new Date('2025-04-17 15:08:02.824'),
+      updatedAt: new Date('2025-04-17 15:08:02.824'),
+    });
+    await Subscription.create({
+      id: 3,
+      name: 'pro',
+      price: 500,
+      credits: 1000,
+      webSearch: false,
+      createdAt: new Date('2025-04-17 15:08:02.824'),
+      updatedAt: new Date('2025-04-17 15:08:02.824'),
+    });
   }
   // Connect Kafka producer
   await connectKafkaProducer();
