@@ -19,6 +19,7 @@ const allowedOrigins = [
   'http://172.19.48.1:3002',
   'https://smsaifrontend-e3b0f8d6192d.herokuapp.com',
   'https://smsai.site',
+  'http://www.smsai.site',
 ];
 
 app.use(
