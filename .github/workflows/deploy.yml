@@ -26,7 +26,7 @@ jobs:
           script: |
             cd Smsai || { echo "Smsai directory not found, cloning..."; git clone https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git Smsai && cd Smsai; }
             git reset --hard
-            git pull https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git master
+            git pull 
             npm install
             docker compose down
             sleep 5
