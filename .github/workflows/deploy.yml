@@ -24,10 +24,23 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Debug: Print the current working directory and environment variables
+            echo "Debug: Printing the current working directory on the EC2 instance"
+            pwd
+            echo "Debug: Printing environment variables"
+            env
+
+            # Navigate to the Smsai directory or clone the repository if it doesn't exist
             cd Smsai || { echo "Smsai directory not found, cloning..."; git clone https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git Smsai && cd Smsai; }
+
+            # Reset and pull the latest changes
             git reset --hard
-            git pull 
+            git pull https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git master
+
+            # Install dependencies
             npm install
+
+            # Restart the application using Docker Compose
             docker compose down
             sleep 5
             docker compose up --build -d
