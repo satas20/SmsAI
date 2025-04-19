@@ -42,13 +42,6 @@ jobs:
             git reset --hard
             git pull https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git master
 
-            # Install dependencies
-            if [ ! -f package.json ]; then
-              echo "Error: package.json not found in SmsAI directory."
-              exit 1
-            fi
-            npm install
-
             # Restart the application using Docker Compose
             if [ ! -f docker-compose.yml ]; then
               echo "Error: docker-compose.yml not found in SmsAI directory."
