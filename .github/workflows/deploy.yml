@@ -14,16 +14,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Write the PEM Key to a File
-      - name: Create SSH Key File
-        run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" > ec2_key.pem
-          chmod 600 ec2_key.pem
+      # Step 2: Set up SSH
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
       # Step 3: Deploy to EC2
       - name: Deploy to EC2
         run: |
-          ssh -i ec2_key.pem -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
             cd Smsai || { echo "Smsai directory not found, cloning..."; git clone https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git Smsai && cd Smsai; }
             git reset --hard
             git pull https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git master
