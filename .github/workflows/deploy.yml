@@ -1,9 +1,9 @@
-name: CI/CD Pipeline
+name: Deploy to EC2
 
 on:
   push:
     branches:
-      - main # Trigger on push to the main branch
+      - main # Trigger deployment on pushes to the main branch
 
 jobs:
   deploy:
@@ -14,22 +14,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up SSH
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
-
-      # Step 3: Copy files to EC2
-      - name: Copy files to EC2
+      # Step 2: Write the PEM Key to a File
+      - name: Create SSH Key File
         run: |
-          scp -o StrictHostKeyChecking=no -r . ec2-user@${{ secrets.EC2_PUBLIC_IP }}:/home/ec2-user/app
+          echo "${{ secrets.EC2_SSH_KEY }}" > ec2_key.pem
+          chmod 600 ec2_key.pem
 
-      # Step 4: Deploy on EC2
-      - name: Deploy on EC2
+      # Step 3: Deploy to EC2
+      - name: Deploy to EC2
         run: |
-          ssh -v -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
-          cd /home/ec2-user/Smsai
-          docker-compose down
-          docker-compose up -d --build
+          ssh -i ec2_key.pem -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+            cd Smsai || { echo "Smsai directory not found, cloning..."; git clone https://github.com/<your-username>/<your-repo>.git Smsai && cd Smsai; }
+            git reset --hard
+            git pull origin main
+            npm install
+            docker compose down
+            sleep 5
+            docker compose up --build -d
           EOF
