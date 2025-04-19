@@ -22,7 +22,7 @@ const allowedOrigins = [
   'http://www.smsai.site',
   'https://www.smsai.site',
 ];
-
+const test = '';
 app.use(
   cors({
     origin: (origin, callback) => {
