@@ -28,15 +28,19 @@ jobs:
             echo "Debug: Printing the current working directory on the EC2 instance"
             pwd
             ls -la
-            # Navigate to the Smsai directory or clone the repository if it doesn't exist
-            cd Smsai || { 
-              echo "Smsai directory not found, cloning...";
-              git clone https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git Smsai && cd Smsai;
-            }
+
+            # Check if the Smsai directory exists
+            if [ -d "SmsAI" ]; then
+              echo "SmsAI directory exists. Navigating to it."
+              cd SmsAI
+            else
+              echo "SmsAI directory not found. Cloning the repository..."
+              git clone https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git SmsAI && cd SmsAI
+            fi
 
             # Verify if the repository was cloned successfully
-            if [ ! -d Smsai ]; then
-              echo "Error: Smsai directory was not created. Cloning might have failed."
+            if [ ! -d SmsAI ]; then
+              echo "Error: SmsAI directory was not created. Cloning might have failed."
               exit 1
             fi
 
@@ -46,14 +50,14 @@ jobs:
 
             # Install dependencies
             if [ ! -f package.json ]; then
-              echo "Error: package.json not found in Smsai directory."
+              echo "Error: package.json not found in SmsAI directory."
               exit 1
             fi
             npm install
 
             # Restart the application using Docker Compose
             if [ ! -f docker-compose.yml ]; then
-              echo "Error: docker-compose.yml not found in Smsai directory."
+              echo "Error: docker-compose.yml not found in SmsAI directory."
               exit 1
             fi
             docker compose down
