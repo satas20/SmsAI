@@ -27,8 +27,7 @@ jobs:
             # Debug: Print the current working directory and environment variables
             echo "Debug: Printing the current working directory on the EC2 instance"
             pwd
-            echo "Debug: Printing environment variables"
-            env
+
 
             # Navigate to the Smsai directory or clone the repository if it doesn't exist
             cd Smsai || { 
