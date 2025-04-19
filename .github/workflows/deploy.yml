@@ -27,14 +27,7 @@ jobs:
             # Debug: Print the current working directory and environment variables
             echo "Debug: Printing the current working directory on the EC2 instance"
             pwd
-            echo "Debug: Printing environment variables"
-            env
-
-            # Debug: Print the values of specific environment variables
-            echo "HOST_DNS: ${{ secrets.HOST_DNS }}"
-            echo "USERNAME: ${{ secrets.USERNAME }}"
-            echo "GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}"
-
+            ls -la
             # Navigate to the Smsai directory or clone the repository if it doesn't exist
             cd Smsai || { 
               echo "Smsai directory not found, cloning...";
