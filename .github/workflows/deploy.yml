@@ -31,16 +31,33 @@ jobs:
             env
 
             # Navigate to the Smsai directory or clone the repository if it doesn't exist
-            cd Smsai || { echo "Smsai directory not found, cloning..."; git clone https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git Smsai && cd Smsai; }
+            cd Smsai || { 
+              echo "Smsai directory not found, cloning...";
+              git clone https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git Smsai && cd Smsai;
+            }
+
+            # Verify if the repository was cloned successfully
+            if [ ! -d Smsai ]; then
+              echo "Error: Smsai directory was not created. Cloning might have failed."
+              exit 1
+            fi
 
             # Reset and pull the latest changes
             git reset --hard
             git pull https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git master
 
             # Install dependencies
+            if [ ! -f package.json ]; then
+              echo "Error: package.json not found in Smsai directory."
+              exit 1
+            fi
             npm install
 
             # Restart the application using Docker Compose
+            if [ ! -f docker-compose.yml ]; then
+              echo "Error: docker-compose.yml not found in Smsai directory."
+              exit 1
+            fi
             docker compose down
             sleep 5
             docker compose up --build -d
