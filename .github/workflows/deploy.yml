@@ -38,12 +38,6 @@ jobs:
               git clone https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git SmsAI && cd SmsAI
             fi
 
-            # Verify if the repository was cloned successfully
-            if [ ! -d SmsAI ]; then
-              echo "Error: SmsAI directory was not created. Cloning might have failed."
-              exit 1
-            fi
-
             # Reset and pull the latest changes
             git reset --hard
             git pull https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git master
