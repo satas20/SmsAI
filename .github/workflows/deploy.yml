@@ -56,4 +56,5 @@ jobs:
             fi
             docker compose down
             sleep 5
-            docker compose up --build
+            docker compose up --build -d
+            echo "Deployment completed successfully."
