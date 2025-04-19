@@ -24,9 +24,9 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -i ec2_key.pem -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
-            cd Smsai || { echo "Smsai directory not found, cloning..."; git clone https://github.com/<your-username>/<your-repo>.git Smsai && cd Smsai; }
+            cd Smsai || { echo "Smsai directory not found, cloning..."; git clone https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git Smsai && cd Smsai; }
             git reset --hard
-            git pull origin master
+            git pull https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git master
             npm install
             docker compose down
             sleep 5
