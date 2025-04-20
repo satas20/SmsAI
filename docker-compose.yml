@@ -47,7 +47,10 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_COMPRESSION_TYPE: snappy
       KAFKA_HEAP_OPTS: '-Xmx256m -Xms256m'
+      KAFKA_LOG_RETENTION_HOURS: 24 # Retain logs for 24 hours (increase from 12 hours)
+      KAFKA_LOG_RETENTION_BYTES: 536870912 # Retain up to 512MB per partition (reduce from 1GB)
     healthcheck:
       test: ['CMD-SHELL', 'nc -z localhost 9092']
       interval: 10s
@@ -57,27 +60,6 @@ services:
       resources:
         limits:
           memory: 512M
-          cpus: '0.3'
-
-  postgres:
-    image: postgres:latest
-    ports:
-      - '5432:5432'
-    environment:
-      POSTGRES_USER: username
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: smsai
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U username -d smsai']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    deploy:
-      resources:
-        limits:
-          memory: 256M
           cpus: '0.2'
 
   app:
@@ -87,11 +69,11 @@ services:
     ports:
       - '3001:3001'
     environment:
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: REDACTED # Replace with your managed DB endpoint
       POSTGRES_PORT: 5432
-      POSTGRES_USER: username
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: smsai
+      POSTGRES_USER: REDACTED
+      POSTGRES_PASSWORD: REDACTED
+      POSTGRES_DB: REDACTED
       KAFKA_BROKER: kafka:9092
       NETGSM_USERNAME: REDACTED
       NETGSM_PASSWORD: REDACTED
@@ -103,8 +85,6 @@ services:
       PAYTR_MERCHANT_KEY: REDACTED
       PAYTR_MERCHANT_SALT: REDACTED
     depends_on:
-      postgres:
-        condition: service_healthy
       kafka:
         condition: service_healthy
     deploy:
