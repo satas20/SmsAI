@@ -21,6 +21,8 @@ const allowedOrigins = [
   'https://smsai.site',
   'http://www.smsai.site',
   'https://www.smsai.site',
+  'http://localhost:3000',
+  'https://localhost:3000',
 ];
 
 //.
