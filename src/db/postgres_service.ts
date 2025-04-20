@@ -30,6 +30,12 @@ class PostgresDB {
       database,
       dialect: 'postgres',
       logging: false,
+      dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false, // Set to true if you have a valid certificate
+        },
+      },
     });
 
     this.initializeModels();

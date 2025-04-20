@@ -47,7 +47,10 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_COMPRESSION_TYPE: snappy
       KAFKA_HEAP_OPTS: '-Xmx256m -Xms256m'
+      KAFKA_LOG_RETENTION_HOURS: 24 # Retain logs for 24 hours (increase from 12 hours)
+      KAFKA_LOG_RETENTION_BYTES: 536870912 # Retain up to 512MB per partition (reduce from 1GB)
     healthcheck:
       test: ['CMD-SHELL', 'nc -z localhost 9092']
       interval: 10s
@@ -57,27 +60,6 @@ services:
       resources:
         limits:
           memory: 512M
-          cpus: '0.3'
-
-  postgres:
-    image: postgres:latest
-    ports:
-      - '5432:5432'
-    environment:
-      POSTGRES_USER: username
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: smsai
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U username -d smsai']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    deploy:
-      resources:
-        limits:
-          memory: 256M
           cpus: '0.2'
 
   app:
@@ -87,11 +69,11 @@ services:
     ports:
       - '3001:3001'
     environment:
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: cat670aihdrkt1.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com # Replace with your managed DB endpoint
       POSTGRES_PORT: 5432
-      POSTGRES_USER: username
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: smsai
+      POSTGRES_USER: u2lr3kth3p9dnr
+      POSTGRES_PASSWORD: p648de9ce20f1f673c4f04e8ea861b9c4132060867bfdafe9f06d65486c8e3528
+      POSTGRES_DB: d130isvvf07lsn
       KAFKA_BROKER: kafka:9092
       NETGSM_USERNAME: 8508409620
       NETGSM_PASSWORD: 1B,FE7D
@@ -103,8 +85,6 @@ services:
       PAYTR_MERCHANT_KEY: qGMad6R1dKyxC1mu
       PAYTR_MERCHANT_SALT: uEmZENZ3thnCJKg4
     depends_on:
-      postgres:
-        condition: service_healthy
       kafka:
         condition: service_healthy
     deploy:
