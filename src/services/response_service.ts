@@ -172,7 +172,6 @@ export class ResponseService {
         message,
         response,
       });
-      console.log('Usage history logged:', usageHistory);
     } catch (error) {
       console.error('Error logging usage history:', error);
     }
