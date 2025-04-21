@@ -36,16 +36,10 @@ export class ResponseService {
     kafkaMessage: KafkaMessage,
   ): Promise<string | undefined> {
     try {
-      console.log(
-        `Response Service: Processing message: ${JSON.stringify(kafkaMessage)}`,
-      );
       const userService = new UserService();
 
       const credits = await this.checkUserCredits(kafkaMessage);
       if (credits <= 0) {
-        console.log(
-          `Response Service: No credits left for user ${kafkaMessage.phoneNumber}.`,
-        );
         return 'No credits left. Please recharge your account.';
       }
       const user = await userService.findUserByPhoneNumber(
@@ -67,7 +61,6 @@ export class ResponseService {
 
       // Remove links from the generated message
       const cleanedMessage = removeLinks(textResponse);
-      console.log(`Response Service: Cleaned message: ${cleanedMessage}`);
 
       const remainingCredits = await this.updateCredits(userId, isWebSearch);
       const finallMessage =

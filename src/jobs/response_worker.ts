@@ -28,7 +28,6 @@ const startResponseWorker = async () => {
       eachMessage: async ({ topic, partition, message }) => {
         try {
           const value = message.value?.toString();
-          console.log(`Response Worker: Received message: ${value}`);
 
           if (value) {
             // Parse the message
