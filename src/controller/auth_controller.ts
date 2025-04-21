@@ -33,10 +33,14 @@ export class AuthController {
         `Your OTP is: ${otpText}`,
         phoneNumber,
       );
+      const user = await User.findOne({
+        where: { phoneNumber },
+      });
 
       res.status(200).json({
         message: 'OTP sent.',
         expiresIn: leftTimeInSeconds,
+        isNewUser: !user,
       });
     } catch (error) {
       console.error('Error r    equesting OTP:', error);
