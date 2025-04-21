@@ -53,8 +53,8 @@ services:
     healthcheck:
       test: ['CMD-SHELL', 'nc -z localhost 9092']
       interval: 10s
-      timeout: 5s
-      retries: 5
+      timeout: 10s
+      retries: 10
     deploy:
       resources:
         limits:
