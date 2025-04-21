@@ -55,11 +55,6 @@ class SMSService {
     } catch (error: any) {
       if (error.code === '40') {
         // Ignore 40 errors no messgaes found
-        console.log(
-          'Empty inbox startdatestartdate:',
-          startdate + ' enddate:',
-          enddate,
-        );
       } else {
         console.error('Error getting incoming messages:', error);
         throw error;

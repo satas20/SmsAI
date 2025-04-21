@@ -10,8 +10,6 @@ const smsService = new SMSService();
 const runInboundSMSJob = () => {
   // Schedule the job to run every minute
   cron.schedule('*/10 * * * * *', async () => {
-    console.log('Running incoming SMS job...');
-
     try {
       // Fetch incoming messages from NetGSM
       const formatDate = (date: Date) => {
@@ -35,7 +33,6 @@ const runInboundSMSJob = () => {
       const incomingMessages = await smsService.getIncomingMessages();
 
       if (!incomingMessages) {
-        console.log('No new incoming messages.');
         return;
       }
 

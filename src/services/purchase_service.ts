@@ -18,7 +18,6 @@ export abstract class PurchaseService {
    * @param transaction - The transaction details to log.
    */
   protected logTransaction(transaction: any): void {
-    console.log('Transaction logged:', transaction);
     // You can replace this with actual logging logic (e.g., saving to a database or external logging service)
   }
 
