@@ -21,10 +21,14 @@ export class AuthController {
       const currentTime = new Date();
       const leftTime = expiresAt.getTime() - currentTime.getTime();
       const leftTimeInSeconds = Math.floor(leftTime / 1000); // Convert milliseconds to seconds
+      const user = await User.findOne({
+        where: { phoneNumber },
+      });
       if (!isOtpNew) {
         return res.status(431).json({
           message: 'OTP already sent.',
           expiresIn: leftTimeInSeconds,
+          isNewUser: !user,
         });
       }
       const otpText = otp.getDataValue('otp');
@@ -33,9 +37,6 @@ export class AuthController {
         `Your OTP is: ${otpText}`,
         phoneNumber,
       );
-      const user = await User.findOne({
-        where: { phoneNumber },
-      });
 
       res.status(200).json({
         message: 'OTP sent.',
