@@ -50,4 +50,13 @@ jobs:
             docker compose down
             sleep 5
             docker compose up --build -d
+            sleep 5
+            # Check if the application is running
+            if [ "$(docker ps -q -f name=smsai-app)" ]; then
+              echo "Application is running."
+            else
+              echo "Error: Application is not running."
+              exit 1
+            fi
+
             echo "Deployment completed successfully."
