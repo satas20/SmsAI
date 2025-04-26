@@ -67,7 +67,7 @@ class PostgresDB {
   }
 
   public async sync(): Promise<void> {
-    await this.sequelize.sync({ force: true });
+    await this.sequelize.sync({ force: false });
   }
 }
 
