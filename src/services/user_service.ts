@@ -31,9 +31,9 @@ export class UserService {
     });
     const smsService = new SMSService();
     await smsService.sendSMS(
-      'Welcome to SMS-AI! You have been given free ' +
+      "SMS-AI'ye Hoş Geldiniz! Size " +
         credits +
-        ' credits. Enjoy your experience! :help: for help',
+        ' ücretsiz mesaj tanımlandı. İyi deneyimler! SMSAI hakkında bilgi almak için :smsai: mevcut komutlar ve yardım için :help: yazın',
       phoneNumber,
     );
     return { user, userSubscription };

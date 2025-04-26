@@ -1,12 +1,11 @@
 export enum SystemMessages {
-  CREDIT = ':credit:',
+  INFO = ':info:',
   HELP = ':help:',
-  USAGE = ':usage:',
-  ADD_CREDIT = ':addcredit:',
-  STATUS = ':status:',
-  ACCOUNT = ':account:',
+  BUY = ':buy:',
+  SMSAI = ':smsai:',
+  ADMIN = ':admin:',
 }
 export enum CreditCosts {
-  WEB_SEARCH = 2,
+  WEB_SEARCH = 3,
   NORMAL_RESPONSE = 1,
 }

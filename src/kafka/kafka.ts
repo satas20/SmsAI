@@ -1,8 +1,16 @@
 import { Kafka } from 'kafkajs';
 
+// Dynamically select the Kafka broker based on the environment
+const kafkaBroker =
+  process.env.KAFKA_BROKER ||
+  process.env.KAFKA_BROKER_LOCAL ||
+  'localhost:2902' ||
+  'kafka:9092';
+console.log('Kafka broker:', kafkaBroker);
+
 const kafka = new Kafka({
   clientId: 'sms-ai-producer',
-  brokers: [process.env.KAFKA_BROKER || 'kafka:9092'],
+  brokers: [kafkaBroker],
 });
 console.log('Kafka broker:', process.env.KAFKA_BROKER || 'kafka:9092');
 

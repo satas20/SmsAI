@@ -21,7 +21,7 @@ class OpenAIService {
     }
     this.openai = new OpenAI({ apiKey });
   }
-  public async createResponse(prompt: string): Promise<any> {
+  public async createWSDisabledResponse(prompt: string): Promise<any> {
     try {
       const response = await this.openai.responses.create({
         model: 'gpt-4o',
@@ -34,6 +34,39 @@ class OpenAIService {
       throw new Error(`Failed to get response from OpenAI: ${error.message}`);
     }
   }
+  public async createFreeResponse(prompt: string): Promise<any> {
+    try {
+      const response = await this.openai.chat.completions.create({
+        messages: [{ role: 'system', content: prompt }],
+        model: 'gpt-3.5-turbo',
+        max_tokens: 150,
+      });
+
+      if (response.choices && response.choices.length > 0) {
+        return response;
+      } else {
+        throw new Error('No response from OpenAI');
+      }
+    } catch (error: any) {
+      console.error('Error calling OpenAI:', error.message);
+      throw new Error(`Failed to get response from OpenAI: ${error.message}`);
+    }
+  }
+
+  public async createWSEnabledResponse(prompt: string): Promise<any> {
+    try {
+      const response = await this.openai.responses.create({
+        model: 'gpt-4o',
+        tools: [{ type: 'web_search_preview', search_context_size: 'low' }],
+        input: [{ role: 'system', content: prompt }],
+      });
+      return response;
+    } catch (error: any) {
+      console.error('Error calling OpenAI:', error.message);
+      throw new Error(`Failed to get response from OpenAI: ${error.message}`);
+    }
+  }
+
   public async getUserInput(prompt: string): Promise<OpenAIChatResponse> {
     try {
       const response = await this.openai.chat.completions.create({
