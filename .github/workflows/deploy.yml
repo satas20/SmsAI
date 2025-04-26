@@ -38,9 +38,9 @@ jobs:
               git clone https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git SmsAI && cd SmsAI
             fi
 
-            # Reset and pull the latest changes
-            git reset --hard
-            git pull https://${{ secrets.GH_ACCESS_TOKEN }}@github.com/satas20/SmsAI.git master
+            # Reset and fetch the latest changes
+            git fetch --all
+            git reset --hard origin/master
 
             # Restart the application using Docker Compose
             if [ ! -f docker-compose.yml ]; then
