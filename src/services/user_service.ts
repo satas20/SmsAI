@@ -33,7 +33,7 @@ export class UserService {
     await smsService.sendSMS(
       "SMS-AI'ye Hoş Geldiniz! Size " +
         credits +
-        ' ücretsiz mesaj tanımlandı. İyi deneyimler! SMSAI hakkında bilgi almak için :smsai: mevcut komutlar ve yardım için :help: yazın',
+        ' ücretsiz mesaj tanımlandı. İyi deneyimler! SMSAI hakkında bilgi almak için :smsai: mevcut komutlar ve yardım için :help: yazın. Ücretsiz deneme süresi 30 gündür ve web araması mevcut değildir.\nBu hizmeti kullanmak Gizlilik ve Kullanıcı Sözleşmesini kabul ettiğiniz anlamına gelir. Gizlilik ve Kullanıcı Sözleşmesine SMSAI.site üzerinden ulaşabilirsiniz.',
       phoneNumber,
     );
     return { user, userSubscription };

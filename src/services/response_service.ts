@@ -78,7 +78,7 @@ export class ResponseService {
 
     Mesaj Gönderme Seçenekleri:
     1. Normal Mesaj: Direkt sorunuzu yazın (Yapay zeka gerektiğinde web araması yapar)
-    2. Zorunlu Web Araması: Mesajın başına :ws: ekleyin (örn: :ws: hava durumu)
+    2.  Web Aramalı: Mesajın başına :ws: ekleyin (örn: :ws: hava durumu)
     3. Web Aramasız: Mesajın başına :ws!: ekleyin (örn: :ws!: 2+2 kaç)
 
     Not: Web araması özelliği  ücretsiz deneme paketinde mevcut değildir.`;
@@ -124,7 +124,7 @@ export class ResponseService {
         '\nPaketleri smsai.site üzerinden alabilirsiniz. SMS ile satın almak çok yakında aktif olacak.';
     }
     if (message === SystemMessages.SMSAI) {
-      response = `SMS-AI, yapay zeka destekli bir mesajlaşma hizmetidir. Sorularınızı hızlı ve doğru bir şekilde internet olmadan sms ile yanıtlar. Web araması yapabilme özelliği ile güncel bilgilere ulaşmanızı sağlar. detaylı bilgi için :help: yazabilirsiniz.`;
+      response = `SMS-AI, yapay zeka destekli bir mesajlaşma hizmetidir.İnternete ihtiyaç duymadan yapay zeka kullanabilirsiniz. Web araması yapabilme özelliği ile güncel bilgilere ulaşmanızı sağlar. detaylı bilgi  ve kullanım talimatı için :help: yazabilirsiniz.`;
     }
     this.logUsage(
       user.getDataValue('id'),
@@ -155,7 +155,7 @@ export class ResponseService {
       // Generate a response using OpenAI
       let openaiResponse;
       if (subscription.getDataValue('name') === 'free') {
-        openaiResponse = await this.openaiService.createFreeResponse(
+        openaiResponse = await this.openaiService.createWSDisabledResponse(
           kafkaMessage.message +
             'Default language is Turkish if prompt doesnt have language like 2+2.',
         );
@@ -189,15 +189,10 @@ export class ResponseService {
       }
       let textResponse;
       let isWebSearch;
-      if (subscription.getDataValue('name') === 'free') {
-        const formatedData = this.formatGpt_5Response(openaiResponse);
-        textResponse = formatedData.textResponse;
-        isWebSearch = formatedData.isWebSearch;
-      } else {
-        const formatedData = this.formatOpenAIResponse(openaiResponse);
-        textResponse = formatedData.textResponse;
-        isWebSearch = formatedData.isWebSearch;
-      }
+
+      const formatedData = this.formatOpenAIResponse(openaiResponse);
+      textResponse = formatedData.textResponse;
+      isWebSearch = formatedData.isWebSearch;
 
       if (!textResponse) {
         throw new Error('OpenAI did not return a valid response.');
