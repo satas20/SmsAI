@@ -83,6 +83,8 @@ services:
       PAYTR_MERCHANT_ID: 562077
       PAYTR_MERCHANT_KEY: qGMad6R1dKyxC1mu
       PAYTR_MERCHANT_SALT: uEmZENZ3thnCJKg4
+      IYZICO_TEST_API_KEY: Pf9Yhzc9K7WB7DhDsVraEBk0dH4PvJWs5b4A
+      IYZICO_TEST_SECRET_KEY: sandbox-QAZWs8LSRltoGlYm2tHeQNWKZAFnJyM4
     depends_on:
       kafka:
         condition: service_healthy
