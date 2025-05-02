@@ -15,6 +15,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
+    "@types/iyzipay": "^2.0.3",
     "@types/node-cron": "^3.0.11",
     "@types/request-ip": "^0.0.41",
     "ts-node": "^10.9.2",
@@ -27,6 +28,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
+    "iyzipay": "^2.0.64",
     "jsonwebtoken": "^9.0.2",
     "kafkajs": "^2.2.4",
     "node-cron": "^3.0.3",
