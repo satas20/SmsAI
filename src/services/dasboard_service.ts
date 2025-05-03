@@ -111,7 +111,7 @@ export class DashboardService {
         ...paymentInfo,
         subscription: subscription,
       });
-      return null;
+      return response;
     } catch (error) {
       console.error('Error purchasing subscription:', error);
       throw new Error('Failed to purchase subscription');

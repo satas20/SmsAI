@@ -16,13 +16,16 @@ export class PurchaseController {
       const dashboardService = new DashboardService();
       paymentInfo.userIp = userIp; // Add user IP address to payment information
       // Initialize purchase process
-      const iFrameToken = await dashboardService.initPurchase(
+      const data = await dashboardService.initPurchase(
         userId,
         subscriptionId,
         paymentInfo,
       );
       // Send the iFrame token back to the client
-      res.status(200).json({ iFrameToken });
+      res.status(200).json({
+        message: 'Payment initialized successfully',
+        data: data,
+      });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       res.status(500).json({ message: 'Failed to generate iFrameToken' });
