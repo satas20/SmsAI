@@ -28,16 +28,18 @@ export class IyzicoService {
   public async initCF(data: any) {
     try {
       const initCFBody = this.createInitCFBody(data);
-      const response = this.iyzipay.checkoutFormInitialize.create(
-        initCFBody,
-        (error: any, result: any) => {
-          if (error) {
-            throw error;
-          }
-          return result;
-        },
-      );
-      return response;
+      return new Promise((resolve, reject) => {
+        this.iyzipay.checkoutFormInitialize.create(
+          initCFBody,
+          (error: any, result: any) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          },
+        );
+      });
     } catch (error) {
       return {
         error: true,
@@ -48,8 +50,8 @@ export class IyzicoService {
     }
   }
   public createInitCFBody(data: any): ThreeDSInitializePaymentRequestData {
-    const { userIp, subscriptionId, price, phoneNumber } = data;
-
+    const price = Number(data.subscription.getDataValue('price'));
+    const subscriptionId = data.subscription.getDataValue('id');
     const basketitems = [
       {
         id: data.subscription.getDataValue('id').toString(),
@@ -61,7 +63,7 @@ export class IyzicoService {
     ];
     const billingAddress = {
       contactName: data.user_name,
-      city: 'ankara',
+      city: data.user_address,
       country: 'Turkey',
       address: data.user_address,
     };
@@ -71,10 +73,10 @@ export class IyzicoService {
       name: data.user_name,
       surname: data.user_surname,
       email: data.email,
-      identityNumber: '47854764634',
+      identityNumber: data.identityNumber,
       registrationAddress: data.user_address,
-      ip: userIp,
-      city: 'ankara',
+      ip: data.userIp,
+      city: data.user_address,
       country: 'Turkey',
     };
     const initCFBody: any = {
