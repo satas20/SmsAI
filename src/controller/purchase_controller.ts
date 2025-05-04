@@ -32,7 +32,7 @@ export class PurchaseController {
         subscriptionId,
         paymentInfo,
       );
-      // Send the iFrame token back to the client
+      //todo return html page
       res.status(200).json({
         message: 'Payment initialized successfully',
         data: data,
