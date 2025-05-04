@@ -2,10 +2,54 @@ import crypto from 'crypto';
 import { IyzicoInitCfParams } from '../utils/constants';
 import Iyzipay, {
   BASKET_ITEM_TYPE,
+  CheckoutFormRetrieveResult,
   ThreeDSInitializePaymentRequestData,
 } from 'iyzipay';
+import { IyzicoPayment } from '../models/iyzico_payment';
 
 export class IyzicoService {
+  async checkPaymentStatus(
+    token: any,
+  ): Promise<{ status: string; userId: number; subscriptionId: number }> {
+    const iyzicoPayment = await IyzicoPayment.findOne({
+      where: { token: token },
+    });
+    if (!iyzicoPayment) {
+      throw new Error('Payment not found');
+    }
+    const paymentResult: CheckoutFormRetrieveResult = await new Promise(
+      (resolve, reject) => {
+        this.iyzipay.checkoutForm.retrieve(
+          { token },
+          (error: any, result: any) => {
+            if (error) {
+              console.error('Error retrieving payment:', error);
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          },
+        );
+      },
+    );
+    const returndata = {
+      status: paymentResult.status,
+      userId: iyzicoPayment.getDataValue('user_id'),
+      subscriptionId: iyzicoPayment.getDataValue('subscription_id'),
+    };
+    if (paymentResult.status === 'success') {
+      await IyzicoPayment.update(
+        { paymentStatus: 'success' },
+        { where: { token: token } },
+      );
+    } else {
+      await IyzicoPayment.update(
+        { paymentStatus: 'failure' },
+        { where: { token: token } },
+      );
+    }
+    return returndata;
+  }
   private iyzicoEndpoint = 'https://api.iyzipay.com/payment';
   private initCFEndpoint = '/iyzipos/checkoutform/initialize/auth/ecom';
   private apikey =
@@ -13,7 +57,9 @@ export class IyzicoService {
   private secretKey =
     process.env.IYZICO_SECRET_KEY || process.env.IYZICO_TEST_SECRET_KEY || '';
   private iyzipay: Iyzipay;
-  private calbackUrl = process.env.CALLBACK_URL || 'smsai.site/callback';
+  private calbackUrl =
+    process.env.IYZICO_CALLBACK_URL ||
+    'https://6a2b-92-44-29-219.ngrok-free.app/purchase/iyzicoCallback';
   constructor() {
     if (!this.apikey || !this.secretKey) {
       throw new Error('Iyzico API key or secret key is not set');
@@ -28,7 +74,7 @@ export class IyzicoService {
   public async initCF(data: any) {
     try {
       const initCFBody = this.createInitCFBody(data);
-      return new Promise((resolve, reject) => {
+      const response = new Promise((resolve, reject) => {
         this.iyzipay.checkoutFormInitialize.create(
           initCFBody,
           (error: any, result: any) => {
@@ -40,6 +86,15 @@ export class IyzicoService {
           },
         );
       });
+      const result: any = await response;
+      IyzicoPayment.create({
+        user_id: data.userId,
+        price: initCFBody.price,
+        subscription_id: data.subscription.getDataValue('id'),
+        conversationId: initCFBody.conversationId,
+        token: result.token,
+      });
+      return result;
     } catch (error) {
       return {
         error: true,

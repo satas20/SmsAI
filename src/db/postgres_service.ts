@@ -6,6 +6,7 @@ import {
   Subscription,
   UserSubscription,
   UserSubscriptionLog,
+  IyzicoPayment,
 } from '../index';
 import dotenv from 'dotenv';
 
@@ -60,6 +61,7 @@ class PostgresDB {
       Subscription,
       UserSubscription,
       UserSubscriptionLog,
+      IyzicoPayment,
     ]; // Add all models here
     for (const model of models) {
       await model.initModel(this.sequelize);
