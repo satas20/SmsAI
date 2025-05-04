@@ -2,6 +2,17 @@ import { Request, Response } from 'express';
 import { DashboardService } from '../services/dasboard_service';
 import { AuthenticatedRequest } from '../types/types';
 export class PurchaseController {
+  public async processCallback(req: Request, res: Response) {
+    try {
+      const body = req.body;
+      const dashboardService = new DashboardService();
+      const result = await dashboardService.processCallback(body);
+      res.status(200).send(result);
+    } catch (error) {
+      console.error('Error processing callback:', error);
+      res.status(500).json({ message: 'Failed to process callback' });
+    }
+  }
   public async initPurchase(
     req: AuthenticatedRequest,
     res: Response,
@@ -16,13 +27,16 @@ export class PurchaseController {
       const dashboardService = new DashboardService();
       paymentInfo.userIp = userIp; // Add user IP address to payment information
       // Initialize purchase process
-      const iFrameToken = await dashboardService.initPurchase(
+      const data = await dashboardService.initPurchase(
         userId,
         subscriptionId,
         paymentInfo,
       );
       // Send the iFrame token back to the client
-      res.status(200).json({ iFrameToken });
+      res.status(200).json({
+        message: 'Payment initialized successfully',
+        data: data,
+      });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       res.status(500).json({ message: 'Failed to generate iFrameToken' });

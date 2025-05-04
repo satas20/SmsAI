@@ -2,8 +2,29 @@ import { UserSubscription } from '../models/user_subscription';
 import { UsageHistory } from '../models/usage_history';
 import { Subscription } from '../models/subscription';
 import { PayTRService } from './paytr_service';
-
+import { IyzicoService } from './iyzico_service';
+import { UserService } from './user_service';
 export class DashboardService {
+  public async processCallback(body: any) {
+    const iyzicoService = new IyzicoService();
+    const token = body.token;
+    const { status, userId, subscriptionId } =
+      await iyzicoService.checkPaymentStatus(token);
+    let message = '';
+    if (status === 'success') {
+      const userService = new UserService();
+      await userService.updateUserSubscription(userId, subscriptionId);
+      message =
+        'Ödeme işleminiz başarıyla tamamlandı. Aboneliğiniz aktif hale getirildi.';
+    } else {
+      message =
+        'Ödeme işleminiz başarısız oldu. Lütfen tekrar deneyin veya destek ile iletişime geçin. ';
+    }
+    return {
+      status: status,
+      message: message,
+    };
+  }
   /**
    * Fetches dashboard information for a specific user
    * @param userId - The ID of the user
@@ -16,6 +37,12 @@ export class DashboardService {
       const subscription = await UserSubscription.findOne({
         where: { userId, isActive: true },
       });
+      if (!subscription) {
+        return {
+          subscription: null,
+          usageHistory: [],
+        };
+      }
       const subscriptionDetails = await Subscription.findOne({
         where: { id: subscription?.getDataValue('subscriptionId') },
       });
@@ -56,7 +83,12 @@ export class DashboardService {
             )
           : null,
       };
-
+      if (usageHistory.length === 0) {
+        return {
+          subscription: finalSubscription,
+          usageHistory: [],
+        };
+      }
       const formatedUsageHistory = usageHistory.map((history) => {
         return {
           id: history.getDataValue('id'),
@@ -96,35 +128,22 @@ export class DashboardService {
     paymentInfo: any,
   ): Promise<any> {
     try {
-      // Fetch subscription details
+      const iyzicoService = new IyzicoService();
+
       const subscription = await Subscription.findOne({
         where: { id: subscriptionId },
       });
       if (!subscription) {
         throw new Error('Subscription not found');
       }
-      const payment_amount = Number(subscription.getDataValue('price'));
-      const paytr = new PayTRService();
-      const merchant_oid = `${userId}${subscriptionId}${Date.now()}`.replace(
-        /[^a-zA-Z0-9]/g,
-        '',
-      );
-      const user_basket = JSON.stringify([
-        {
-          id: subscriptionId,
-          name: subscription.getDataValue('name'),
-          price: subscription.getDataValue('price'),
-          quantity: 1,
-        },
-      ]);
-      paymentInfo.merchant_oid = merchant_oid;
-      paymentInfo.payment_amount = payment_amount;
-      paymentInfo.user_basket = user_basket;
-      const iFrameToken = await paytr.generateIframeToken(paymentInfo);
-      if (!iFrameToken) {
-        throw new Error('Failed to generate iFrame token');
-      }
-      return iFrameToken;
+      const price = Number(subscription.getDataValue('price'));
+      const response = await iyzicoService.initCF({
+        price: price,
+        userId: userId,
+        ...paymentInfo,
+        subscription: subscription,
+      });
+      return response;
     } catch (error) {
       console.error('Error purchasing subscription:', error);
       throw new Error('Failed to purchase subscription');

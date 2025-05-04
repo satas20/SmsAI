@@ -9,5 +9,8 @@ const purchaseController = new PurchaseController();
 router.post('/initPurchase', authenticateJWT, (req, res) => {
   purchaseController.initPurchase(req, res);
 });
+router.post('/iyzicoCallback', (req, res) => {
+  purchaseController.processCallback(req, res);
+});
 
 export default router;
