@@ -83,9 +83,9 @@ services:
       PAYTR_MERCHANT_ID: REDACTED
       PAYTR_MERCHANT_KEY: REDACTED
       PAYTR_MERCHANT_SALT: REDACTED
+      IYZICO_CALLBACK_URL: https://api.smsai.site/purchase/iyzicoCallback
       IYZICO_TEST_API_KEY: REDACTED
       IYZICO_TEST_SECRET_KEY: REDACTED
-      IYZICO_CALLBACK_URL: https://api.smsai.site/purchase/iyzicoCallback
     depends_on:
       kafka:
         condition: service_healthy
