@@ -23,6 +23,8 @@ const allowedOrigins = [
   'https://www.smsai.site',
   'http://localhost:3000',
   'https://localhost:3000',
+  'https://sandbox-api.iyzipay.com',
+  'https://api.iyzipay.com',
 ];
 
 //.
@@ -42,6 +44,8 @@ app.use(
   }),
 );
 app.use(express.json()); // Middleware to parse JSON requests
+app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
+
 app.use('/auth', authRouter);
 app.use('/dashboard', dashBoardRouter);
 app.use('/purchase', purchaseRouter); // Assuming you have a purchase router

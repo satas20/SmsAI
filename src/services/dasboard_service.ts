@@ -3,7 +3,28 @@ import { UsageHistory } from '../models/usage_history';
 import { Subscription } from '../models/subscription';
 import { PayTRService } from './paytr_service';
 import { IyzicoService } from './iyzico_service';
+import { UserService } from './user_service';
 export class DashboardService {
+  public async processCallback(body: any) {
+    const iyzicoService = new IyzicoService();
+    const token = body.token;
+    const { status, userId, subscriptionId } =
+      await iyzicoService.checkPaymentStatus(token);
+    let message = '';
+    if (status === 'success') {
+      const userService = new UserService();
+      await userService.updateUserSubscription(userId, subscriptionId);
+      message =
+        'Ödeme işleminiz başarıyla tamamlandı. Aboneliğiniz aktif hale getirildi.';
+    } else {
+      message =
+        'Ödeme işleminiz başarısız oldu. Lütfen tekrar deneyin veya destek ile iletişime geçin. ';
+    }
+    return {
+      status: status,
+      message: message,
+    };
+  }
   /**
    * Fetches dashboard information for a specific user
    * @param userId - The ID of the user
@@ -16,6 +37,12 @@ export class DashboardService {
       const subscription = await UserSubscription.findOne({
         where: { userId, isActive: true },
       });
+      if (!subscription) {
+        return {
+          subscription: null,
+          usageHistory: [],
+        };
+      }
       const subscriptionDetails = await Subscription.findOne({
         where: { id: subscription?.getDataValue('subscriptionId') },
       });
@@ -56,7 +83,12 @@ export class DashboardService {
             )
           : null,
       };
-
+      if (usageHistory.length === 0) {
+        return {
+          subscription: finalSubscription,
+          usageHistory: [],
+        };
+      }
       const formatedUsageHistory = usageHistory.map((history) => {
         return {
           id: history.getDataValue('id'),

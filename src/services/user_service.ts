@@ -4,6 +4,37 @@ import { Subscription } from '../models/subscription';
 import SMSService from './sms_service';
 import { UserSubscriptionLog } from '../models/user_subscription_log';
 export class UserService {
+  async updateUserSubscription(userId: number, subscriptionId: number) {
+    const userSubscription = await UserSubscription.findOne({
+      where: { userId: userId },
+    });
+    const subscription = await Subscription.findOne({
+      where: { id: subscriptionId },
+    });
+    if (!subscription) {
+      throw new Error('Subscription not found');
+    }
+
+    if (userSubscription) {
+      await userSubscription.destroy();
+    } else {
+      const credits = subscription?.getDataValue('credits') || 0;
+      UserSubscription.create({
+        userId: userId,
+        subscriptionId: subscriptionId,
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        remainingCredits: credits,
+        isActive: true,
+      });
+      UserSubscriptionLog.create({
+        userId: userId,
+        subscriptionId: subscriptionId,
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      });
+    }
+  }
   public async createNewUser(phoneNumber: string) {
     const user = await User.create({
       phoneNumber,

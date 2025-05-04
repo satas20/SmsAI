@@ -2,6 +2,17 @@ import { Request, Response } from 'express';
 import { DashboardService } from '../services/dasboard_service';
 import { AuthenticatedRequest } from '../types/types';
 export class PurchaseController {
+  public async processCallback(req: Request, res: Response) {
+    try {
+      const body = req.body;
+      const dashboardService = new DashboardService();
+      const result = await dashboardService.processCallback(body);
+      res.status(200).send(result);
+    } catch (error) {
+      console.error('Error processing callback:', error);
+      res.status(500).json({ message: 'Failed to process callback' });
+    }
+  }
   public async initPurchase(
     req: AuthenticatedRequest,
     res: Response,
