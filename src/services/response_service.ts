@@ -17,6 +17,17 @@ type KafkaMessage = {
   operator: string;
 };
 
+const freeSystemPrompt =
+  'You are SMS AI,  SMS-based AI assistant founded by yound entepuneur Ata Ayyıldız.  You are runing for free verison.Answer user questions based on the following:' +
+  ' SMS AI allows AI interaction via SMS, even without internet.' +
+  ' Features: web search, summaries, creative content. Future: MMS for images/music.' +
+  ' Free users: 10 messages (non-web search).' +
+  ' Target: users with limited/no internet (e.g., military personnel, remote areas).' +
+  ' Rules:' +
+  ' - Simulate SMS responses.' +
+  ' - Keep responses concise (under 100 tokens).' +
+  ' - Avoid technical details unless explicitly asked.';
+
 export class ResponseService {
   private openaiService: OpenAIService;
 
@@ -142,7 +153,8 @@ export class ResponseService {
   ): Promise<string | undefined> {
     try {
       const userService = new UserService();
-
+      let textResponse;
+      let isWebSearch;
       let { remainingCredits, subscription } =
         await this.checkUserCredits(kafkaMessage);
       if (remainingCredits <= 0) {
@@ -155,10 +167,19 @@ export class ResponseService {
       // Generate a response using OpenAI
       let openaiResponse;
       if (subscription.getDataValue('name') === 'free') {
-        openaiResponse = await this.openaiService.createWSDisabledResponse(
-          kafkaMessage.message +
-            'Default language is Turkish if prompt doesnt have language like 2+2.',
-        );
+        const deepseekMessage = [
+          {
+            role: 'system',
+            content: freeSystemPrompt,
+          },
+          {
+            role: 'user',
+            content: kafkaMessage.message,
+          },
+        ];
+        textResponse =
+          await this.openaiService.createFreeResponse(deepseekMessage);
+        isWebSearch = false;
       } else {
         const forceWS = kafkaMessage.message.startsWith(':ws:');
         const disableWS = kafkaMessage.message.startsWith(':ws!:');
@@ -186,13 +207,10 @@ export class ResponseService {
               ' Perform web search only if necessary for recent or specific information. Keep the response concise and factual. Remove any URLs from the final response. Default language is Turkish if prompt doesnt have language like 2+2.',
           );
         }
+        const formatedData = this.formatOpenAIResponse(openaiResponse);
+        textResponse = formatedData.textResponse;
+        isWebSearch = formatedData.isWebSearch;
       }
-      let textResponse;
-      let isWebSearch;
-
-      const formatedData = this.formatOpenAIResponse(openaiResponse);
-      textResponse = formatedData.textResponse;
-      isWebSearch = formatedData.isWebSearch;
 
       if (!textResponse) {
         throw new Error('OpenAI did not return a valid response.');
