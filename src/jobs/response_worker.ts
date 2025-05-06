@@ -3,11 +3,11 @@ import { ResponseService } from '../services/response_service';
 import SMSService from '../services/sms_service';
 import OpenAIService from '../services/openai_service';
 const kafka = new Kafka({
-  clientId: 'sms-gpt-response-worker',
-  brokers: [process.env.KAFKA_BROKER || 'kafka:9092'],
+  clientId: 'sms-ai-response-worker',
+  brokers: [process.env.KAFKA_BROKER || 'localhost:29092'],
 });
 
-const kafkaConsumer = kafka.consumer({ groupId: 'sms-gpt-response-group' });
+const kafkaConsumer = kafka.consumer({ groupId: 'sms-ai-response-group' });
 
 const startResponseWorker = async () => {
   try {

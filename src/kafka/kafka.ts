@@ -2,7 +2,7 @@ import { Kafka } from 'kafkajs';
 
 // Dynamically select the Kafka broker based on the environment
 const kafkaBroker =
-  // process.env.KAFKA_BROKER ||
+  process.env.KAFKA_BROKER ||
   // process.env.KAFKA_BROKER_LOCAL ||
   'localhost:29092';
 console.log('Kafka broker:', kafkaBroker);
@@ -20,13 +20,13 @@ const connectKafkaProducer = async () => {
     const admin = kafka.admin();
     await admin.connect();
     const topics = await admin.listTopics();
-    if (!topics.includes('inbound-sms')) {
+    if (!topics.includes('sms-inbound')) {
       await admin.createTopics({
         topics: [
-          { topic: 'inbound-sms', numPartitions: 1, replicationFactor: 1 },
+          { topic: 'sms-inbound', numPartitions: 1, replicationFactor: 1 },
         ],
       });
-      console.log('Created inbound-sms topic');
+      console.log('Created sms-inboundtopic');
     }
     await admin.disconnect();
     console.log('Kafka producer connected.');

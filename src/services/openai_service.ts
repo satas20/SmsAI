@@ -39,7 +39,7 @@ class OpenAIService {
       throw new Error(`Failed to get response from OpenAI: ${error.message}`);
     }
   }
-  public async createFreeResponse(messages: any): Promise<any> {
+  public async createDeepseekResponse(messages: any): Promise<any> {
     try {
       const completion = await this.openaiDeepSeek.chat.completions.create({
         messages: messages,
@@ -48,6 +48,7 @@ class OpenAIService {
       });
 
       const deepSeekResponse = completion.choices[0].message.content;
+      return deepSeekResponse;
     } catch (error: any) {
       console.error('Error calling OpenAI:', error.message);
       throw new Error(`Failed to get response from OpenAI: ${error.message}`);
