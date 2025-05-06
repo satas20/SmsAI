@@ -3,27 +3,32 @@ import { OpenAI } from 'openai';
 import dotenv from 'dotenv';
 
 dotenv.config();
-const apiKey = process.env.OPENAI_API_KEY;
-
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 interface OpenAIChatResponse {
   role: string;
   content: string | null;
 }
 
 class OpenAIService {
-  private openai: OpenAI;
+  private openaiGPT: OpenAI;
+  private openaiDeepSeek: OpenAI;
 
   constructor() {
-    if (!apiKey) {
+    if (!OPENAI_API_KEY) {
       throw new Error(
         'OPENAI_API_KEY is not set in the environment variables.',
       );
     }
-    this.openai = new OpenAI({ apiKey });
+    this.openaiGPT = new OpenAI({ apiKey: OPENAI_API_KEY });
+    this.openaiDeepSeek = new OpenAI({
+      baseURL: 'https://api.deepseek.com', // DeepSeek API base URL
+      apiKey: DEEPSEEK_API_KEY, // Use DeepSeek API key from environment variables
+    });
   }
   public async createWSDisabledResponse(prompt: string): Promise<any> {
     try {
-      const response = await this.openai.responses.create({
+      const response = await this.openaiGPT.responses.create({
         model: 'gpt-4o',
         // tools: [{ type: 'web_search_preview', search_context_size: 'low' }],
         input: [{ role: 'system', content: prompt }],
@@ -34,19 +39,16 @@ class OpenAIService {
       throw new Error(`Failed to get response from OpenAI: ${error.message}`);
     }
   }
-  public async createFreeResponse(prompt: string): Promise<any> {
+  public async createDeepseekResponse(messages: any): Promise<any> {
     try {
-      const response = await this.openai.chat.completions.create({
-        messages: [{ role: 'system', content: prompt }],
-        model: 'gpt-3.5-turbo',
-        max_tokens: 150,
+      const completion = await this.openaiDeepSeek.chat.completions.create({
+        messages: messages,
+        max_tokens: 250,
+        model: 'deepseek-chat', // Use the DeepSeek model
       });
 
-      if (response.choices && response.choices.length > 0) {
-        return response;
-      } else {
-        throw new Error('No response from OpenAI');
-      }
+      const deepSeekResponse = completion.choices[0].message.content;
+      return deepSeekResponse;
     } catch (error: any) {
       console.error('Error calling OpenAI:', error.message);
       throw new Error(`Failed to get response from OpenAI: ${error.message}`);
@@ -55,7 +57,7 @@ class OpenAIService {
 
   public async createWSEnabledResponse(prompt: string): Promise<any> {
     try {
-      const response = await this.openai.responses.create({
+      const response = await this.openaiGPT.responses.create({
         model: 'gpt-4o',
         tools: [{ type: 'web_search_preview', search_context_size: 'low' }],
         input: [{ role: 'system', content: prompt }],
@@ -69,7 +71,7 @@ class OpenAIService {
 
   public async getUserInput(prompt: string): Promise<OpenAIChatResponse> {
     try {
-      const response = await this.openai.chat.completions.create({
+      const response = await this.openaiGPT.chat.completions.create({
         messages: [{ role: 'system', content: prompt }],
         model: 'gpt-4-1106-preview',
         max_tokens: 250,

@@ -17,6 +17,28 @@ type KafkaMessage = {
   operator: string;
 };
 
+const freeSystemPrompt =
+  'You are SMS AI,  SMS-based AI assistant founded by yound entepuneur Ata Ayyıldız.  You are runing for free verison.Answer user questions based on the following:' +
+  ' SMS AI allows AI interaction via SMS, even without internet.' +
+  ' Features: web search, summaries, creative content. Future: MMS for images/music.' +
+  ' Free users: 10 messages (non-web search).' +
+  ' Target: users with limited/no internet (e.g., military personnel, remote areas).' +
+  ' If answer requires web search, suggest using paid version free version dont have websearches.' +
+  ' Rules:' +
+  ' - Simulate SMS responses.' +
+  ' - Keep responses concise (under 100 tokens).' +
+  ' - Avoid technical details unless explicitly asked.';
+const paidSystemPrompt =
+  'You are SMS AI, an SMS-based AI assistant founded by young entrepreneur Ata Ayyıldız. Answer user questions based on the following:' +
+  ' SMS AI allows AI interaction via SMS, even without internet.' +
+  ' User has disabled web search for this prompt.' +
+  ' If answer requires web search, suggest using :ws: prefix to enable web searches. like this ":ws: your question?"' +
+  ' Rules:' +
+  ' - Simulate SMS responses.' +
+  ' - Keep responses concise (under 300 tokens).' +
+  ' - Avoid technical details unless explicitly asked.' +
+  ' - Be helpful and informative using your existing knowledge.';
+
 export class ResponseService {
   private openaiService: OpenAIService;
 
@@ -142,100 +164,147 @@ export class ResponseService {
   ): Promise<string | undefined> {
     try {
       const userService = new UserService();
-
-      let { remainingCredits, subscription } =
+      const { remainingCredits, subscription } =
         await this.checkUserCredits(kafkaMessage);
+
       if (remainingCredits <= 0) {
         return 'Mesaj gönderme hakkınız kalmadı. Yeni bir paket almak için :buy: yazabilirsiniz.';
       }
+
       const user = await userService.findUserByPhoneNumber(
         kafkaMessage.phoneNumber,
       );
       const userId = user?.getDataValue('id');
-      // Generate a response using OpenAI
-      let openaiResponse;
+
+      // Handle the 4 cases
+      let textResponse: string;
+      let isWebSearch: boolean;
+
       if (subscription.getDataValue('name') === 'free') {
-        openaiResponse = await this.openaiService.createWSDisabledResponse(
-          kafkaMessage.message +
-            'Default language is Turkish if prompt doesnt have language like 2+2.',
-        );
+        // Case 1: Free user
+        ({ textResponse, isWebSearch } =
+          await this.handleFreeUser(kafkaMessage));
       } else {
+        // Cases 2, 3, and 4: Paid user
         const forceWS = kafkaMessage.message.startsWith(':ws:');
         const disableWS = kafkaMessage.message.startsWith(':ws!:');
+
         if (forceWS) {
-          if (remainingCredits < CreditCosts.WEB_SEARCH) {
-            return (
-              'Web araması yapabilmek için yeterli krediniz yok. Kalan mesajlarınız: ' +
-              remainingCredits
-            );
-          }
-          kafkaMessage.message = kafkaMessage.message.replace(':ws:', '');
-          openaiResponse = await this.openaiService.createWSEnabledResponse(
-            kafkaMessage.message +
-              'Do web search even if you know the answer dont return any links  keep it as short as possible  after you create the response refactor it and remove any links that is present as source  Default language is Turkish if prompt doesnt have language like 2+2.',
-          );
+          // Case 2: Force web search
+          ({ textResponse, isWebSearch } = await this.handleForceWebSearch(
+            kafkaMessage,
+            remainingCredits,
+          ));
         } else if (disableWS) {
-          kafkaMessage.message = kafkaMessage.message.replace(':ws!:', '');
-          openaiResponse = await this.openaiService.createWSDisabledResponse(
-            kafkaMessage.message,
-          );
+          // Case 3: Disable web search
+          ({ textResponse, isWebSearch } =
+            await this.handleDisableWebSearch(kafkaMessage));
         } else {
-          // Default behavior: use web search if available
-          openaiResponse = await this.openaiService.createWSEnabledResponse(
-            kafkaMessage.message +
-              ' Perform web search only if necessary for recent or specific information. Keep the response concise and factual. Remove any URLs from the final response. Default language is Turkish if prompt doesnt have language like 2+2.',
-          );
+          // Case 4: Neutral (default behavior)
+          ({ textResponse, isWebSearch } =
+            await this.handleDisableWebSearch(kafkaMessage));
+          // await this.handleNeutralSearch(kafkaMessage));
         }
       }
-      let textResponse;
-      let isWebSearch;
-
-      const formatedData = this.formatOpenAIResponse(openaiResponse);
-      textResponse = formatedData.textResponse;
-      isWebSearch = formatedData.isWebSearch;
 
       if (!textResponse) {
         throw new Error('OpenAI did not return a valid response.');
       }
 
-      // Remove links from the generated message
-      const cleanedMessage = removeLinks(textResponse);
-
-      const { cost, newCredits } = await this.updateCredits(
+      // Finalize the response
+      return await this.finalizeResponse(
         userId,
+        kafkaMessage,
+        textResponse,
         isWebSearch,
       );
-      let finallMessage = cleanedMessage;
-      finallMessage += `\n Kullanım: ${isWebSearch ? 'web araması - ' : ''}${cost} Mesaj`;
-      finallMessage += '\n Kalan Mesaj: ' + newCredits;
-
-      // Log usage history
-      await this.logUsage(
-        userId,
-        kafkaMessage.phoneNumber,
-        isWebSearch ? CreditCosts.WEB_SEARCH : CreditCosts.NORMAL_RESPONSE,
-        'response',
-        kafkaMessage.message,
-        finallMessage,
-      );
-
-      return finallMessage;
     } catch (error) {
-      const userService = new UserService();
-      const user = await userService.findUserByPhoneNumber(
-        kafkaMessage.phoneNumber,
-      );
-      const userId = user?.getDataValue('id');
-      await this.logUsage(
-        userId,
-        kafkaMessage.phoneNumber,
-        0,
-        'error',
-        kafkaMessage.message,
-        'something went wrong',
-      );
       console.error('Response Service: Error processing response:', error);
+      return 'Bir hata oluştu. Lütfen tekrar deneyin.';
     }
+  }
+  private async handleFreeUser(
+    kafkaMessage: KafkaMessage,
+  ): Promise<{ textResponse: string; isWebSearch: boolean }> {
+    const deepseekMessage = [
+      { role: 'system', content: freeSystemPrompt },
+      { role: 'user', content: kafkaMessage.message },
+    ];
+
+    const textResponse =
+      await this.openaiService.createDeepseekResponse(deepseekMessage);
+    return { textResponse, isWebSearch: false };
+  }
+  private async handleForceWebSearch(
+    kafkaMessage: KafkaMessage,
+    remainingCredits: number,
+  ): Promise<{ textResponse: string; isWebSearch: boolean }> {
+    if (remainingCredits < CreditCosts.WEB_SEARCH) {
+      throw new Error(
+        `Web araması yapabilmek için yeterli krediniz yok. Kalan mesajlarınız: ${remainingCredits}`,
+      );
+    }
+
+    kafkaMessage.message = kafkaMessage.message.replace(':ws:', '');
+    const openaiResponse = await this.openaiService.createWSEnabledResponse(
+      kafkaMessage.message +
+        ' Do web search even if you know the answer. Don’t return any links. Keep it as short as possible.',
+    );
+
+    const formattedData = this.formatOpenAIResponse(openaiResponse);
+    return { textResponse: formattedData.textResponse, isWebSearch: true };
+  }
+  private async handleDisableWebSearch(
+    kafkaMessage: KafkaMessage,
+  ): Promise<{ textResponse: string; isWebSearch: boolean }> {
+    kafkaMessage.message = kafkaMessage.message.replace(':ws!:', '');
+    const deepseekMessage = [
+      { role: 'system', content: paidSystemPrompt },
+      { role: 'user', content: kafkaMessage.message },
+    ];
+
+    const textResponse =
+      await this.openaiService.createDeepseekResponse(deepseekMessage);
+    return { textResponse, isWebSearch: false };
+  }
+  private async handleNeutralSearch(
+    kafkaMessage: KafkaMessage,
+  ): Promise<{ textResponse: string; isWebSearch: boolean }> {
+    const openaiResponse = await this.openaiService.createWSEnabledResponse(
+      kafkaMessage.message +
+        ' Perform web search only if necessary for recent or specific information. Keep the response concise and factual.',
+    );
+
+    const formattedData = this.formatOpenAIResponse(openaiResponse);
+    return {
+      textResponse: formattedData.textResponse,
+      isWebSearch: formattedData.isWebSearch,
+    };
+  }
+  private async finalizeResponse(
+    userId: string,
+    kafkaMessage: KafkaMessage,
+    textResponse: string,
+    isWebSearch: boolean,
+  ): Promise<string> {
+    const cleanedMessage = removeLinks(textResponse);
+
+    const { cost, newCredits } = await this.updateCredits(userId, isWebSearch);
+
+    let finalMessage = cleanedMessage;
+    finalMessage += ` \n Kullanım: ${isWebSearch ? 'web araması - ' : ''}${cost} Mesaj`;
+    finalMessage += `\n Kalan Mesaj: ${newCredits}`;
+
+    await this.logUsage(
+      userId,
+      kafkaMessage.phoneNumber,
+      isWebSearch ? CreditCosts.WEB_SEARCH : CreditCosts.NORMAL_RESPONSE,
+      'response',
+      kafkaMessage.message,
+      finalMessage,
+    );
+
+    return finalMessage;
   }
   async checkUserCredits(kafkaMessage: KafkaMessage) {
     const userService = new UserService();
