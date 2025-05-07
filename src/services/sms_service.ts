@@ -1,6 +1,7 @@
 import Netgsm, { SmsInboxPayload } from '@netgsm/sms';
 import dotenv from 'dotenv';
-
+import { MAX_SMS_LENGTH } from '../utils/constants';
+const MAX_RETRIES = 3;
 class SMSService {
   private netgsm: Netgsm;
 
@@ -13,16 +14,62 @@ class SMSService {
 
   public async sendSMS(message: string, phoneNumber: string): Promise<any> {
     try {
-      const result = await this.netgsm.sendRestSms({
-        msgheader: process.env.NETGSM_USERNAME || 'your_netgsm_username', // Replace with your Netgsm message header
-        messages: [
-          {
-            msg: message,
-            no: phoneNumber,
-          },
-        ],
+      if (!message) throw new Error('Message cannot be empty');
+
+      let messages = [];
+
+      if (message.length > MAX_SMS_LENGTH) {
+        let remainingText = message;
+        while (remainingText.length > 0) {
+          let splitIndex = MAX_SMS_LENGTH;
+
+          if (remainingText.length > MAX_SMS_LENGTH) {
+            // Find the last space before MAX_LENGTH
+            splitIndex = remainingText.lastIndexOf(' ', MAX_SMS_LENGTH);
+            if (splitIndex === -1) splitIndex = MAX_SMS_LENGTH;
+          }
+
+          messages.push(remainingText.slice(0, splitIndex).trim());
+          remainingText = remainingText.slice(splitIndex).trim();
+        }
+      } else {
+        messages.push(message);
+      }
+      const formatedMessages = messages.map((msg) => ({
+        msg,
+        no: phoneNumber,
+      }));
+      await formatedMessages.forEach(async (msg) => {
+        let retry = 0;
+        try {
+          const result = await this.netgsm.sendRestSms({
+            msgheader: process.env.NETGSM_USERNAME || 'your_netgsm_username',
+            appname: 'SmsAI',
+            messages: [msg],
+          });
+        } catch (error) {
+          console.error('Error sending SMS:', error);
+          retry++;
+          if (retry < MAX_RETRIES) {
+            console.log(`Retrying to send SMS... Attempt ${retry}`);
+            await this.netgsm.sendRestSms({
+              msgheader: process.env.NETGSM_USERNAME || 'your_netgsm_username',
+              appname: 'SmsAI',
+              messages: [msg],
+            });
+          } else {
+            throw error;
+          }
+        }
       });
-      return result;
+
+      //Doestn work for now
+      // const result = await this.netgsm.sendRestSms({
+      //   msgheader: process.env.NETGSM_USERNAME || 'your_netgsm_username',
+      //   appname: 'SmsAI',
+      //   messages: formatedMessages,
+      // });
+      return true;
     } catch (error) {
       console.error('Error sending SMS:', error);
       throw error;
