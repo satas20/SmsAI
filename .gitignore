@@ -21,7 +21,6 @@ dist/
 build/
 
 # IDE and editor files
-.vscode/
 .idea/
 *.swp
 *.swo
