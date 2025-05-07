@@ -1,4 +1,4 @@
-import OpenAIService from './openai_service';
+import AIService from './ai_service';
 import { removeLinks } from '../utils/remove_links';
 import { CreditCosts, SystemMessages } from '../utils/constants';
 import { UserService } from './user_service';
@@ -40,10 +40,10 @@ const paidSystemPrompt =
   ' - Be helpful and informative using your existing knowledge.';
 
 export class ResponseService {
-  private openaiService: OpenAIService;
+  private aiService: AIService;
 
-  constructor(openaiService: OpenAIService) {
-    this.openaiService = openaiService;
+  constructor(openaiService: AIService) {
+    this.aiService = openaiService;
   }
   public prepareReply(kafkaMessage: KafkaMessage) {
     if (this.isSystemMessage(kafkaMessage.message)) {
@@ -232,7 +232,7 @@ export class ResponseService {
     ];
 
     const textResponse =
-      await this.openaiService.createDeepseekResponse(deepseekMessage);
+      await this.aiService.createDeepseekResponse(deepseekMessage);
     return { textResponse, isWebSearch: false };
   }
   private async handleForceWebSearch(
@@ -246,13 +246,15 @@ export class ResponseService {
     }
 
     kafkaMessage.message = kafkaMessage.message.replace(':ws:', '');
-    const openaiResponse = await this.openaiService.createWSEnabledResponse(
-      kafkaMessage.message +
-        ' Do web search even if you know the answer. Don’t return any links. Keep it as short as possible.',
+    // const openaiResponse = await this.openaiService.createWSEnabledResponse(
+    //   kafkaMessage.message +
+    //     ' Do web search even if you know the answer. Don’t return any links. Keep it as short as possible.',
+    // );
+    // const formattedData = this.formatOpenAIResponse(openaiResponse);
+    const textResponse = await this.aiService.createGeminiWSResponse(
+      kafkaMessage.message,
     );
-
-    const formattedData = this.formatOpenAIResponse(openaiResponse);
-    return { textResponse: formattedData.textResponse, isWebSearch: true };
+    return { textResponse: textResponse, isWebSearch: true };
   }
   private async handleDisableWebSearch(
     kafkaMessage: KafkaMessage,
@@ -264,13 +266,13 @@ export class ResponseService {
     ];
 
     const textResponse =
-      await this.openaiService.createDeepseekResponse(deepseekMessage);
+      await this.aiService.createDeepseekResponse(deepseekMessage);
     return { textResponse, isWebSearch: false };
   }
   private async handleNeutralSearch(
     kafkaMessage: KafkaMessage,
   ): Promise<{ textResponse: string; isWebSearch: boolean }> {
-    const openaiResponse = await this.openaiService.createWSEnabledResponse(
+    const openaiResponse = await this.aiService.createWSEnabledResponse(
       kafkaMessage.message +
         ' Perform web search only if necessary for recent or specific information. Keep the response concise and factual.',
     );
