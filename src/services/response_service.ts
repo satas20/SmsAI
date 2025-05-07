@@ -1,6 +1,10 @@
-import OpenAIService from './openai_service';
+import AIService from './ai_service';
 import { removeLinks } from '../utils/remove_links';
-import { CreditCosts, SystemMessages } from '../utils/constants';
+import {
+  CreditCosts,
+  MAX_SMS_LENGTH,
+  SystemMessages,
+} from '../utils/constants';
 import { UserService } from './user_service';
 import { User } from '../models/user';
 import { UserSubscription } from '../models/user_subscription';
@@ -32,7 +36,8 @@ const paidSystemPrompt =
   'You are SMS AI, an SMS-based AI assistant founded by young entrepreneur Ata Ayyıldız. Answer user questions based on the following:' +
   ' SMS AI allows AI interaction via SMS, even without internet.' +
   ' User has disabled web search for this prompt.' +
-  ' If answer requires web search, suggest using :ws: prefix to enable web searches. like this ":ws: your question?"' +
+  ' If answer requires web search, suggest using :s: prefix to enable web searches. like this ":s: your question?"' +
+  ' If user wanted help with something Tell User to use :help:"' +
   ' Rules:' +
   ' - Simulate SMS responses.' +
   ' - Keep responses concise (under 300 tokens).' +
@@ -40,10 +45,10 @@ const paidSystemPrompt =
   ' - Be helpful and informative using your existing knowledge.';
 
 export class ResponseService {
-  private openaiService: OpenAIService;
+  private aiService: AIService;
 
-  constructor(openaiService: OpenAIService) {
-    this.openaiService = openaiService;
+  constructor(aiService: AIService) {
+    this.aiService = aiService;
   }
   public prepareReply(kafkaMessage: KafkaMessage) {
     if (this.isSystemMessage(kafkaMessage.message)) {
@@ -100,7 +105,7 @@ export class ResponseService {
 
     Mesaj Gönderme Seçenekleri:
     1. Normal Mesaj: Direkt sorunuzu yazın (Yapay zeka gerektiğinde web araması yapar)
-    2.  Web Aramalı: Mesajın başına :ws: ekleyin (örn: :ws: hava durumu)
+    2.  Web Aramalı: Mesajın başına :s: ekleyin (örn: :s: hava durumu)
     3. Web Aramasız: Mesajın başına :ws!: ekleyin (örn: :ws!: 2+2 kaç)
 
     Not: Web araması özelliği  ücretsiz deneme paketinde mevcut değildir.`;
@@ -179,15 +184,15 @@ export class ResponseService {
       // Handle the 4 cases
       let textResponse: string;
       let isWebSearch: boolean;
-
+      let smsCount: number = 0;
       if (subscription.getDataValue('name') === 'free') {
         // Case 1: Free user
         ({ textResponse, isWebSearch } =
           await this.handleFreeUser(kafkaMessage));
       } else {
         // Cases 2, 3, and 4: Paid user
-        const forceWS = kafkaMessage.message.startsWith(':ws:');
-        const disableWS = kafkaMessage.message.startsWith(':ws!:');
+        const forceWS = kafkaMessage.message.startsWith(':s:');
+        const disableWS = kafkaMessage.message.startsWith(':s!:');
 
         if (forceWS) {
           // Case 2: Force web search
@@ -212,11 +217,14 @@ export class ResponseService {
       }
 
       // Finalize the response
+
+      smsCount = Math.ceil(textResponse.length / MAX_SMS_LENGTH);
       return await this.finalizeResponse(
         userId,
         kafkaMessage,
         textResponse,
         isWebSearch,
+        smsCount,
       );
     } catch (error) {
       console.error('Response Service: Error processing response:', error);
@@ -227,12 +235,24 @@ export class ResponseService {
     kafkaMessage: KafkaMessage,
   ): Promise<{ textResponse: string; isWebSearch: boolean }> {
     const deepseekMessage = [
-      { role: 'system', content: freeSystemPrompt },
-      { role: 'user', content: kafkaMessage.message },
+      {
+        role: 'system',
+        content: freeSystemPrompt,
+        id: '1',
+        status: 'complete',
+        type: 'message',
+      },
+      {
+        role: 'user',
+        content: kafkaMessage.message,
+        id: '2',
+        status: 'complete',
+        type: 'message',
+      },
     ];
 
     const textResponse =
-      await this.openaiService.createDeepseekResponse(deepseekMessage);
+      await this.aiService.createDeepseekResponse(deepseekMessage);
     return { textResponse, isWebSearch: false };
   }
   private async handleForceWebSearch(
@@ -245,32 +265,29 @@ export class ResponseService {
       );
     }
 
-    kafkaMessage.message = kafkaMessage.message.replace(':ws:', '');
-    const openaiResponse = await this.openaiService.createWSEnabledResponse(
-      kafkaMessage.message +
-        ' Do web search even if you know the answer. Don’t return any links. Keep it as short as possible.',
-    );
+    kafkaMessage.message = kafkaMessage.message.replace(':s:', '');
 
-    const formattedData = this.formatOpenAIResponse(openaiResponse);
-    return { textResponse: formattedData.textResponse, isWebSearch: true };
+    const textResponse = await this.aiService.createGeminiWSResponse(
+      kafkaMessage.message,
+    );
+    return { textResponse: textResponse, isWebSearch: true };
   }
   private async handleDisableWebSearch(
     kafkaMessage: KafkaMessage,
   ): Promise<{ textResponse: string; isWebSearch: boolean }> {
     kafkaMessage.message = kafkaMessage.message.replace(':ws!:', '');
-    const deepseekMessage = [
+    const prompt = [
       { role: 'system', content: paidSystemPrompt },
       { role: 'user', content: kafkaMessage.message },
     ];
 
-    const textResponse =
-      await this.openaiService.createDeepseekResponse(deepseekMessage);
+    const textResponse = await this.aiService.createWSDisabledResponse(prompt);
     return { textResponse, isWebSearch: false };
   }
   private async handleNeutralSearch(
     kafkaMessage: KafkaMessage,
   ): Promise<{ textResponse: string; isWebSearch: boolean }> {
-    const openaiResponse = await this.openaiService.createWSEnabledResponse(
+    const openaiResponse = await this.aiService.createWSEnabledResponse(
       kafkaMessage.message +
         ' Perform web search only if necessary for recent or specific information. Keep the response concise and factual.',
     );
@@ -286,14 +303,26 @@ export class ResponseService {
     kafkaMessage: KafkaMessage,
     textResponse: string,
     isWebSearch: boolean,
+    smsCount: number,
   ): Promise<string> {
     const cleanedMessage = removeLinks(textResponse);
 
-    const { cost, newCredits } = await this.updateCredits(userId, isWebSearch);
+    const { cost, newCredits } = await this.updateCredits(
+      userId,
+      isWebSearch,
+      smsCount,
+    );
 
     let finalMessage = cleanedMessage;
-    finalMessage += ` \n Kullanım: ${isWebSearch ? 'web araması - ' : ''}${cost} Mesaj`;
-    finalMessage += `\n Kalan Mesaj: ${newCredits}`;
+    const usageInfo = `\n Kullanım: ${
+      isWebSearch ? `web araması(${CreditCosts.WEB_SEARCH})` : ''
+    } + ${smsCount} total: ${cost} Mesaj`;
+
+    // Kalan mesaj bilgisi oluştur
+    const remainingInfo = `\n Kalan Mesaj: ${newCredits}`;
+
+    // Final mesajını birleştir
+    finalMessage += usageInfo + remainingInfo;
 
     await this.logUsage(
       userId,
@@ -335,13 +364,18 @@ export class ResponseService {
     }
     return { remainingCredits, subscription };
   }
-  private async updateCredits(userId: string, isWebSearch: boolean) {
+  private async updateCredits(
+    userId: string,
+    isWebSearch: boolean,
+    smsCount: number,
+  ) {
     const userService = new UserService();
     const userSubscription =
       await userService.getUserSubscriptionWithUserId(userId);
     const cost = isWebSearch
-      ? CreditCosts.WEB_SEARCH
-      : CreditCosts.NORMAL_RESPONSE;
+      ? CreditCosts.WEB_SEARCH + smsCount
+      : CreditCosts.NORMAL_RESPONSE * smsCount;
+
     const remainingCredits = userSubscription?.getDataValue('remainingCredits');
     const newCredits = remainingCredits - cost;
     await userService.updateUserCreditsWithUserId(userId, newCredits);
@@ -352,10 +386,7 @@ export class ResponseService {
     const trimmedMessage = message.trim();
     return Object.values(SystemMessages).includes(trimmedMessage.toLowerCase());
   }
-  private formatGpt_5Response(response: any) {
-    const textResponse = response.choices[0].message.content;
-    return { textResponse, isWebSearch: false };
-  }
+
   private formatOpenAIResponse(response: any) {
     const textResponse = response.output.find((x: any) => x.type === 'message')
       ?.content[0].text;

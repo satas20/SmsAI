@@ -9,7 +9,7 @@ export enum CreditCosts {
   WEB_SEARCH = 3,
   NORMAL_RESPONSE = 1,
 }
-
+export const MAX_SMS_LENGTH = 870;
 export type IyzicoInitCfParams = {
   price: number;
   paidPrice: number;

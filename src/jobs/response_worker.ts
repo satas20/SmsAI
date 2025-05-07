@@ -1,7 +1,7 @@
 import { Kafka } from 'kafkajs';
 import { ResponseService } from '../services/response_service';
 import SMSService from '../services/sms_service';
-import OpenAIService from '../services/openai_service';
+import AIService from '../services/ai_service';
 const kafka = new Kafka({
   clientId: 'sms-ai-response-worker',
   brokers: [process.env.KAFKA_BROKER || 'localhost:29092'],
@@ -20,7 +20,7 @@ const startResponseWorker = async () => {
       topic: 'sms-inbound',
       fromBeginning: true,
     });
-    const openaiService = new OpenAIService();
+    const openaiService = new AIService();
     const responseService = new ResponseService(openaiService);
 
     // Listen for messages
