@@ -1,13 +1,36 @@
 import { Request, Response } from 'express';
 import { DashboardService } from '../services/dasboard_service';
 import { AuthenticatedRequest } from '../types/types';
+import dotenv from 'dotenv';
+
+dotenv.config();
 export class PurchaseController {
   public async processCallback(req: Request, res: Response) {
     try {
       const body = req.body;
       const dashboardService = new DashboardService();
       const result = await dashboardService.processCallback(body);
-      res.status(200).send(result);
+      const { status, conversationId, subscriptionId, phoneNumber } = result;
+
+      const redirectUrl = `${process.env.FRONTEND_URL}/purchase/result?status=${status}&conversationId=${conversationId}&subscriptionId=${subscriptionId}&phoneNumber=${phoneNumber}`;
+      res.status(200).send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Redirecting...</title>
+          <script>
+            // Redirect to the desired URL
+            window.location.href = "${redirectUrl}";
+          </script>
+        </head>
+        <body>
+          <p>Redirecting to <a href="${redirectUrl}">${redirectUrl}</a>...</p>
+        </body>
+        </html>
+      `);
+      // res.status(200).send(result);
     } catch (error) {
       console.error('Error processing callback:', error);
       res.status(500).json({ message: 'Failed to process callback' });
@@ -32,7 +55,7 @@ export class PurchaseController {
         subscriptionId,
         paymentInfo,
       );
-      //todo return html page
+
       res.status(200).json({
         message: 'Payment initialized successfully',
         data: data,
