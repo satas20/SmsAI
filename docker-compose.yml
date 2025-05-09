@@ -82,7 +82,7 @@ services:
       GOOGLE_API_KEY_FREE: REDACTED
       JWT_SECRET: REDACTED
       PORT: 3001
-      FRONTEND_URL: http://smsai.site:3002
+      FRONTEND_URL: https://www.smsai.site/
       PAYTR_MERCHANT_ID: REDACTED
       PAYTR_MERCHANT_KEY: REDACTED
       PAYTR_MERCHANT_SALT: REDACTED

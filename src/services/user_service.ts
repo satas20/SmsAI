@@ -83,6 +83,12 @@ export class UserService {
     });
     return user;
   }
+  public async getUserwithUserId(userId: number): Promise<User | null> {
+    const user = await User.findOne({
+      where: { id: userId },
+    });
+    return user;
+  }
   public async getUserSubscriptionWithUserId(
     userId: string,
   ): Promise<UserSubscription | null> {

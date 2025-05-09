@@ -5,24 +5,28 @@ import { PayTRService } from './paytr_service';
 import { IyzicoService } from './iyzico_service';
 import { UserService } from './user_service';
 export class DashboardService {
-  public async processCallback(body: any) {
+  public async processCallback(body: any): Promise<{
+    status: string;
+    conversationId?: string;
+    subscriptionId?: string;
+    phoneNumber?: string;
+  }> {
     const iyzicoService = new IyzicoService();
     const token = body.token;
-    const { status, userId, subscriptionId } =
+    const { status, userId, subscriptionId, conversationId } =
       await iyzicoService.checkPaymentStatus(token);
-    let message = '';
+    const userService = new UserService();
+    const user = await userService.getUserwithUserId(userId);
+    const phoneNumber = user?.getDataValue('phoneNumber');
     if (status === 'success') {
-      const userService = new UserService();
       await userService.updateUserSubscription(userId, subscriptionId);
-      message =
-        'Ödeme işleminiz başarıyla tamamlandı. Aboneliğiniz aktif hale getirildi.';
-    } else {
-      message =
-        'Ödeme işleminiz başarısız oldu. Lütfen tekrar deneyin veya destek ile iletişime geçin. ';
     }
+
     return {
       status: status,
-      message: message,
+      conversationId: conversationId,
+      subscriptionId: subscriptionId.toString(),
+      phoneNumber: phoneNumber,
     };
   }
   /**

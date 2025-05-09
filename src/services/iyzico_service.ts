@@ -8,15 +8,19 @@ import Iyzipay, {
 import { IyzicoPayment } from '../models/iyzico_payment';
 
 export class IyzicoService {
-  async checkPaymentStatus(
-    token: any,
-  ): Promise<{ status: string; userId: number; subscriptionId: number }> {
+  async checkPaymentStatus(token: any): Promise<{
+    status: string;
+    userId: number;
+    subscriptionId: number;
+    conversationId: string;
+  }> {
     const iyzicoPayment = await IyzicoPayment.findOne({
       where: { token: token },
     });
     if (!iyzicoPayment) {
       throw new Error('Payment not found');
     }
+
     const paymentResult: CheckoutFormRetrieveResult = await new Promise(
       (resolve, reject) => {
         this.iyzipay.checkoutForm.retrieve(
@@ -32,9 +36,11 @@ export class IyzicoService {
         );
       },
     );
+
     const returndata = {
       status: paymentResult.status,
       userId: iyzicoPayment.getDataValue('user_id'),
+      conversationId: iyzicoPayment.getDataValue('conversationId'),
       subscriptionId: iyzicoPayment.getDataValue('subscription_id'),
     };
     if (paymentResult.status === 'success') {
@@ -59,7 +65,7 @@ export class IyzicoService {
   private iyzipay: Iyzipay;
   private calbackUrl =
     process.env.IYZICO_CALLBACK_URL ||
-    'https://6a2b-92-44-29-219.ngrok-free.app/purchase/iyzicoCallback';
+    'https://0378-92-44-29-219.ngrok-free.app/purchase/iyzicoCallback';
   constructor() {
     if (!this.apikey || !this.secretKey) {
       throw new Error('Iyzico API key or secret key is not set');
