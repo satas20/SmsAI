@@ -17,23 +17,22 @@ export class UserService {
 
     if (userSubscription) {
       await userSubscription.destroy();
-    } else {
-      const credits = subscription?.getDataValue('credits') || 0;
-      UserSubscription.create({
-        userId: userId,
-        subscriptionId: subscriptionId,
-        startDate: new Date(),
-        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-        remainingCredits: credits,
-        isActive: true,
-      });
-      UserSubscriptionLog.create({
-        userId: userId,
-        subscriptionId: subscriptionId,
-        startDate: new Date(),
-        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-      });
     }
+    const credits = subscription?.getDataValue('credits') || 0;
+    UserSubscription.create({
+      userId: userId,
+      subscriptionId: subscriptionId,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      remainingCredits: credits,
+      isActive: true,
+    });
+    UserSubscriptionLog.create({
+      userId: userId,
+      subscriptionId: subscriptionId,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+    });
   }
   public async createNewUser(phoneNumber: string) {
     const user = await User.create({

@@ -1,18 +1,23 @@
 // filepath: src/services/openai.service.ts
 import { OpenAI } from 'openai';
 import dotenv from 'dotenv';
+import { DynamicRetrievalConfigMode, GoogleGenAI } from '@google/genai';
+import { ResponseInput } from 'openai/resources/responses/responses';
 
 dotenv.config();
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY_FREE;
+// const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 interface OpenAIChatResponse {
   role: string;
   content: string | null;
 }
 
-class OpenAIService {
+class AIService {
   private openaiGPT: OpenAI;
   private openaiDeepSeek: OpenAI;
+  private gemini: GoogleGenAI;
 
   constructor() {
     if (!OPENAI_API_KEY) {
@@ -25,15 +30,44 @@ class OpenAIService {
       baseURL: 'https://api.deepseek.com', // DeepSeek API base URL
       apiKey: DEEPSEEK_API_KEY, // Use DeepSeek API key from environment variables
     });
+    this.gemini = new GoogleGenAI({
+      apiKey: GOOGLE_API_KEY,
+    });
   }
-  public async createWSDisabledResponse(prompt: string): Promise<any> {
+
+  public async createGeminiWSResponse(prompt: string): Promise<any> {
+    try {
+      const response = await this.gemini.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: prompt,
+        config: {
+          tools: [
+            {
+              googleSearch: {
+                dynamicRetrievalConfig: {
+                  dynamicThreshold: 0.8,
+                  mode: DynamicRetrievalConfigMode.MODE_DYNAMIC,
+                },
+              },
+            },
+          ],
+        },
+      });
+      const geminiResponse = response.text;
+      return geminiResponse;
+    } catch (error: any) {
+      console.error('Error calling Gemini:', error.message);
+      throw new Error(`Failed to get response from Gemini: ${error.message}`);
+    }
+  }
+  public async createWSDisabledResponse(prompt: any): Promise<any> {
     try {
       const response = await this.openaiGPT.responses.create({
-        model: 'gpt-4o',
+        model: 'gpt-4.1-nano',
         // tools: [{ type: 'web_search_preview', search_context_size: 'low' }],
-        input: [{ role: 'system', content: prompt }],
+        input: prompt,
       });
-      return response;
+      return response.output_text;
     } catch (error: any) {
       console.error('Error calling OpenAI:', error.message);
       throw new Error(`Failed to get response from OpenAI: ${error.message}`);
@@ -92,4 +126,4 @@ class OpenAIService {
   }
 }
 
-export default OpenAIService;
+export default AIService;
