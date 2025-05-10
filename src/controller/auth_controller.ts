@@ -4,11 +4,14 @@ import { JWTService } from '../services/jwt_service';
 import { User } from '../models/user';
 import SMSService from '../services/sms_service';
 import { AuthService } from '../services/auth_service';
+import { LogManager } from '../services/log_manager';
 export class AuthController {
   /**
    * Handles OTP request
    */
   public async requestOTP(req: Request, res: Response): Promise<any> {
+    const logManager = new LogManager('AuthController');
+
     const { phoneNumber } = req.body;
 
     if (!phoneNumber) {
@@ -44,7 +47,7 @@ export class AuthController {
         isNewUser: !user,
       });
     } catch (error) {
-      console.error('Error r    equesting OTP:', error);
+      logManager.log('error', `Error sending OTP: ${error}`);
       res.status(500).json({ message: 'Failed to send OTP.' });
     }
   }
@@ -68,7 +71,7 @@ export class AuthController {
       }
       res.status(200).json({ token });
     } catch (error) {
-      console.error('Error verifying OTP:', error);
+      const logManager = new LogManager('AuthController');
       res.status(500).json({ message: 'Failed to verify OTP.' });
     }
   }

@@ -26,7 +26,6 @@ export abstract class PurchaseService {
    * @param error - The error to handle.
    */
   protected handleError(error: Error): void {
-    console.error('Purchase error:', error.message);
     // You can extend this to send error notifications or log to an external service
   }
 

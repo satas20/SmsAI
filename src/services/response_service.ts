@@ -12,6 +12,7 @@ import { UsageHistory } from '../models/usage_history';
 import SMSService from './sms_service';
 import { Subscription } from '../models/subscription';
 import { Op } from 'sequelize';
+import { LogManager } from './log_manager';
 type KafkaMessage = {
   phoneNumber: string;
   jobId: string;
@@ -20,7 +21,7 @@ type KafkaMessage = {
   timestamp: string;
   operator: string;
 };
-
+const logManager = new LogManager('ResponseService');
 const freeSystemPrompt =
   'You are SMS AI,  SMS-based AI assistant founded by yound entepuneur Ata Ayyıldız.  You are runing for free verison.Answer user questions based on the following:' +
   ' SMS AI allows AI interaction via SMS, even without internet.' +
@@ -227,7 +228,7 @@ export class ResponseService {
         smsCount,
       );
     } catch (error) {
-      console.error('Response Service: Error processing response:', error);
+      logManager.log('error', `Error in prepareAIReply: ${error}`);
       return 'Bir hata oluştu. Lütfen tekrar deneyin.';
     }
   }
@@ -420,7 +421,10 @@ export class ResponseService {
         response,
       });
     } catch (error) {
-      console.error('Error logging usage history:', error);
+      logManager.log(
+        'error',
+        `Error logging usage: ${error} for userId: ${userId}, phoneNumber: ${phoneNumber}`,
+      );
     }
   }
 }

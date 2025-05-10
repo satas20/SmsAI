@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { DashboardService } from '../services/dasboard_service';
 import { UserService } from '../services/user_service';
-
+import { LogManager } from '../services/log_manager';
+const logManager = new LogManager('HomeController');
 export class HomeController {
   public async getHomeStats(req: Request, res: Response): Promise<any> {
     try {
@@ -13,7 +14,7 @@ export class HomeController {
         data: homeStats,
       });
     } catch (error) {
-      console.error('Error fetching home stats:', error);
+      logManager.log('error', `Error fetching home stats: ${error}`);
       res.status(500).json({ message: 'Failed to fetch home stats' });
     }
   }

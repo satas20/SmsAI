@@ -1,7 +1,6 @@
 import axios from 'axios';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
-import { PurchaseService } from './purchase_service';
 import { IMerchantParams } from '../types/types';
 import nodeBase64 from 'nodejs-base64';
 

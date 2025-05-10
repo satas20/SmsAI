@@ -1,4 +1,5 @@
 import { Kafka } from 'kafkajs';
+import { LogManager } from '../services/log_manager';
 
 // Dynamically select the Kafka broker based on the environment
 const kafkaBroker =
@@ -13,7 +14,7 @@ const kafka = new Kafka({
 });
 
 const kafkaProducer = kafka.producer();
-
+const logManager = new LogManager('KafkaProducer');
 const connectKafkaProducer = async () => {
   try {
     await kafkaProducer.connect();
@@ -26,12 +27,10 @@ const connectKafkaProducer = async () => {
           { topic: 'sms-inbound', numPartitions: 1, replicationFactor: 1 },
         ],
       });
-      console.log('Created sms-inboundtopic');
     }
     await admin.disconnect();
-    console.log('Kafka producer connected.');
   } catch (error) {
-    console.error('Error connecting Kafka producer:', error);
+    logManager.log('error', `Error connecting to Kafka: ${error}`);
   }
 };
 

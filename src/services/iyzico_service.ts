@@ -6,7 +6,9 @@ import Iyzipay, {
   ThreeDSInitializePaymentRequestData,
 } from 'iyzipay';
 import { IyzicoPayment } from '../models/iyzico_payment';
+import { LogManager } from './log_manager';
 
+const logManager = new LogManager('IyzicoService');
 export class IyzicoService {
   async checkPaymentStatus(token: any): Promise<{
     status: string;
@@ -27,7 +29,7 @@ export class IyzicoService {
           { token },
           (error: any, result: any) => {
             if (error) {
-              console.error('Error retrieving payment:', error);
+              logManager.log('error', `Error retrieving payment: ${error}`);
               reject(error);
             } else {
               resolve(result);
