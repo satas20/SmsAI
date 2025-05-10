@@ -3,6 +3,7 @@ import { UserSubscription } from '../models/user_subscription';
 import { Subscription } from '../models/subscription';
 import SMSService from './sms_service';
 import { UserSubscriptionLog } from '../models/user_subscription_log';
+import { UsageHistory } from '../models/usage_history';
 export class UserService {
   async updateUserSubscription(userId: number, subscriptionId: number) {
     const userSubscription = await UserSubscription.findOne({
@@ -105,5 +106,17 @@ export class UserService {
       { remainingCredits: credits },
       { where: { userId } },
     );
+  }
+
+  public async getHomeStats() {
+    const totalUsers = await User.count();
+    const totalMessages = await UsageHistory.count();
+    const totalSubscriptions = await UserSubscription.count();
+    const result = {
+      totalUsers,
+      totalMessages,
+      totalSubscriptions,
+    };
+    return result;
   }
 }
