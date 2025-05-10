@@ -16,6 +16,9 @@ COPY . .
 # Build the application (if using TypeScript)
 RUN npm run build
 
+# Increase memory limit for the build process
+RUN NODE_OPTIONS="--max-old-space-size=2048" npm run build
+
 # Expose the port your app runs on
 EXPOSE 3001
 
