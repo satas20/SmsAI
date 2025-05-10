@@ -13,10 +13,7 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Build the application (if using TypeScript)
-RUN npm run build
-
-# Increase memory limit for the build process
+# Increase memory limit for the build process and build the application
 RUN NODE_OPTIONS="--max-old-space-size=2048" npm run build
 
 # Expose the port your app runs on
