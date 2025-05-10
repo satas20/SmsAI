@@ -3,6 +3,7 @@ import { OpenAI } from 'openai';
 import dotenv from 'dotenv';
 import { DynamicRetrievalConfigMode, GoogleGenAI } from '@google/genai';
 import { ResponseInput } from 'openai/resources/responses/responses';
+import { LogManager } from './log_manager';
 
 dotenv.config();
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -14,6 +15,7 @@ interface OpenAIChatResponse {
   content: string | null;
 }
 
+const logManager = new LogManager('AIService');
 class AIService {
   private openaiGPT: OpenAI;
   private openaiDeepSeek: OpenAI;
@@ -56,7 +58,7 @@ class AIService {
       const geminiResponse = response.text;
       return geminiResponse;
     } catch (error: any) {
-      console.error('Error calling Gemini:', error.message);
+      logManager.log('error', `Error calling Gemini: ${error.message}`);
       throw new Error(`Failed to get response from Gemini: ${error.message}`);
     }
   }
@@ -69,7 +71,7 @@ class AIService {
       });
       return response.output_text;
     } catch (error: any) {
-      console.error('Error calling OpenAI:', error.message);
+      logManager.log('error', `Error calling OpenAI: ${error.message}`);
       throw new Error(`Failed to get response from OpenAI: ${error.message}`);
     }
   }
@@ -84,7 +86,7 @@ class AIService {
       const deepSeekResponse = completion.choices[0].message.content;
       return deepSeekResponse;
     } catch (error: any) {
-      console.error('Error calling OpenAI:', error.message);
+      logManager.log('error', `Error calling DeepSeek: ${error.message}`);
       throw new Error(`Failed to get response from OpenAI: ${error.message}`);
     }
   }
@@ -98,7 +100,7 @@ class AIService {
       });
       return response;
     } catch (error: any) {
-      console.error('Error calling OpenAI:', error.message);
+      logManager.log('error', `Error calling OpenAI: ${error.message}`);
       throw new Error(`Failed to get response from OpenAI: ${error.message}`);
     }
   }
@@ -120,7 +122,7 @@ class AIService {
         throw new Error('No response from OpenAI');
       }
     } catch (error: any) {
-      console.error('Error calling OpenAI:', error.message);
+      logManager.log('error', `Error calling OpenAI: ${error.message}`);
       throw new Error(`Failed to get response from OpenAI: ${error.message}`);
     }
   }

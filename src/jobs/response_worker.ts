@@ -2,13 +2,14 @@ import { Kafka } from 'kafkajs';
 import { ResponseService } from '../services/response_service';
 import SMSService from '../services/sms_service';
 import AIService from '../services/ai_service';
+import { LogManager } from '../services/log_manager';
 const kafka = new Kafka({
   clientId: 'sms-ai-response-worker',
   brokers: [process.env.KAFKA_BROKER || 'localhost:29092'],
 });
 
 const kafkaConsumer = kafka.consumer({ groupId: 'sms-ai-response-group' });
-
+const logManager = new LogManager('ResponseWorker');
 const startResponseWorker = async () => {
   try {
     // Connect the Kafka consumer
@@ -43,12 +44,15 @@ const startResponseWorker = async () => {
             );
           }
         } catch (error) {
-          console.error('Response Worker: Error processing message:', error);
+          logManager.log(
+            'error',
+            `Error processing message: ${error} - Message: ${message.value?.toString()}`,
+          );
         }
       },
     });
   } catch (error) {
-    console.error('Response Worker: Error starting Kafka consumer:', error);
+    logManager.log('error', `Error starting response worker: ${error}`);
   }
 };
 

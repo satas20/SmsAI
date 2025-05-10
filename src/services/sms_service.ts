@@ -1,7 +1,9 @@
 import Netgsm, { SmsInboxPayload } from '@netgsm/sms';
 import dotenv from 'dotenv';
 import { MAX_SMS_LENGTH } from '../utils/constants';
+import { LogManager } from './log_manager';
 const MAX_RETRIES = 3;
+const logManager = new LogManager('SMSService');
 class SMSService {
   private netgsm: Netgsm;
 
@@ -48,10 +50,10 @@ class SMSService {
             messages: [msg],
           });
         } catch (error) {
-          console.error('Error sending SMS:', error);
+          logManager.log('error', `Error sending SMS: ${error}`);
           retry++;
           if (retry < MAX_RETRIES) {
-            console.log(`Retrying to send SMS... Attempt ${retry}`);
+            logManager.log('info', `Retrying to send SMS... Attempt: ${retry}`);
             await this.netgsm.sendRestSms({
               msgheader: process.env.NETGSM_USERNAME || 'your_netgsm_username',
               appname: 'SmsAI',
@@ -71,7 +73,7 @@ class SMSService {
       // });
       return true;
     } catch (error) {
-      console.error('Error sending SMS:', error);
+      logManager.log('error', `Error sending SMS: ${error}`);
       throw error;
     }
   }
@@ -83,7 +85,7 @@ class SMSService {
       });
       return balance;
     } catch (error) {
-      console.error('Error checking balance:', error);
+      logManager.log('error', `Error checking balance: ${error}`);
       throw error;
     }
   }
@@ -103,7 +105,7 @@ class SMSService {
       if (error.code === '40') {
         // Ignore 40 errors no messgaes found
       } else {
-        console.error('Error getting incoming messages:', error);
+        logManager.log('error', `Error fetching incoming messages: ${error}`);
         throw error;
       }
     }
@@ -139,7 +141,7 @@ class SMSService {
       const result = await response.text();
       return result;
     } catch (error) {
-      console.error('Error sending OTP:', error);
+      logManager.log('error', `Error sending OTP: ${error}`);
       throw error;
     }
   }

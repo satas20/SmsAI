@@ -89,6 +89,11 @@ services:
       IYZICO_CALLBACK_URL: https://api.smsai.site/purchase/iyzicoCallback
       IYZICO_TEST_API_KEY: REDACTED
       IYZICO_TEST_SECRET_KEY: REDACTED
+      AWS_REGION: eu-central-1
+      AWS_ACCESS_KEY_ID: REDACTED
+      AWS_SECRET_ACCESS_KEY: REDACTED/
+      CLOUDWATCH_LOG_GROUP: SmsAI
+      CLOUDWATCH_LOG_STREAM: SmsAIBackend
     depends_on:
       kafka:
         condition: service_healthy

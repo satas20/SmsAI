@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { DashboardService } from '../services/dasboard_service';
 import { AuthenticatedRequest } from '../types/types';
+import { LogManager } from '../services/log_manager';
+const logManager = new LogManager('DashboardController');
 export class DashboardController {
   /**
    * Handles OTP request
@@ -24,7 +26,7 @@ export class DashboardController {
         usageHistory,
       });
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      logManager.log('error', `Error fetching dashboard data: ${error}`);
       res.status(500).json({ message: 'Failed to fetch dashboard data.' });
     }
   }

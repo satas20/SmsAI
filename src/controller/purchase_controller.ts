@@ -2,8 +2,11 @@ import { Request, Response } from 'express';
 import { DashboardService } from '../services/dasboard_service';
 import { AuthenticatedRequest } from '../types/types';
 import dotenv from 'dotenv';
+import { LogManager } from '../services/log_manager';
 
 dotenv.config();
+const logManager = new LogManager('PurchaseController');
+
 export class PurchaseController {
   public async processCallback(req: Request, res: Response) {
     try {
@@ -32,7 +35,7 @@ export class PurchaseController {
       `);
       // res.status(200).send(result);
     } catch (error) {
-      console.error('Error processing callback:', error);
+      logManager.log('error', `Error processing callback: ${error}`);
       res.status(500).json({ message: 'Failed to process callback' });
     }
   }
@@ -61,7 +64,7 @@ export class PurchaseController {
         data: data,
       });
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      logManager.log('error', `Error initializing purchase: ${error}`);
       res.status(500).json({ message: 'Failed to generate iFrameToken' });
     }
   }

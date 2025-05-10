@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import SMSService from '../services/sms_service';
 import { kafkaProducer } from '../kafka/kafka'; // Import Kafka producer
 import dotenv from 'dotenv';
+import { LogManager } from '../services/log_manager';
 
 dotenv.config();
 
@@ -9,6 +10,7 @@ const smsService = new SMSService();
 
 const runInboundSMSJob = () => {
   // Schedule the job to run every minute
+  const logManager = new LogManager('InboundSMSJob');
   cron.schedule('*/10 * * * * *', async () => {
     try {
       // Fetch incoming messages from NetGSM
@@ -35,8 +37,6 @@ const runInboundSMSJob = () => {
       if (!incomingMessages) {
         return;
       }
-
-      console.log('Incoming messages:', incomingMessages);
 
       // Send each message to Kafka
       type IncomingMessage = {
@@ -65,10 +65,11 @@ const runInboundSMSJob = () => {
         topic: 'sms-inbound',
         messages: kafkaMessages,
       });
-
-      console.log(`Sent ${kafkaMessages.length} messages to Kafka`);
     } catch (error: any) {
-      console.error('Error in incoming SMS job:', error);
+      logManager.log(
+        'error',
+        `Error in Inbound SMS job: ${error.message || error}`,
+      );
     }
   });
 };

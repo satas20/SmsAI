@@ -1,8 +1,10 @@
 import jwt from 'jsonwebtoken';
+import { LogManager } from './log_manager';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // Replace with a secure secret key
 const JWT_EXPIRY = '55m'; // Token expiry time (15 minutes)
 
+const logManager = new LogManager('JWTService');
 export class JWTService {
   /**
    * Generates a JWT for the given payload.
@@ -22,7 +24,7 @@ export class JWTService {
     try {
       return jwt.verify(token, JWT_SECRET);
     } catch (error) {
-      console.error('Invalid JWT:', error);
+      logManager.log('error', `JWT verification failed: ${error}`);
       return null;
     }
   }

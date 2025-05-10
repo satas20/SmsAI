@@ -11,6 +11,7 @@ import requestIp from 'request-ip'; // Middleware to get client IP address
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { Subscription } from './models/subscription';
+import { LogManager } from './services/log_manager';
 
 dotenv.config(); // Load environment variables from .env file
 const app = express();
@@ -27,6 +28,8 @@ const allowedOrigins = [
   'https://sandbox-api.iyzipay.com',
   'https://api.iyzipay.com',
 ];
+const logManager = new LogManager('Main.ts');
+logManager.initialize();
 
 //.
 app.use(
@@ -36,7 +39,7 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        console.error('Blocked by CORS:', origin);
+        logManager.log('error', `CORS error: ${origin} not allowed`);
         callback(new Error('Not allowed by CORS'));
       }
     },
@@ -57,6 +60,8 @@ app.get('/health', (req, res: Response) => {
 });
 try {
   // Initialize the database
+  logManager.log('info', 'Initializing the application...');
+
   const db = PostgresDB.getInstance();
   await db.sync();
   console.log('Database synced successfully!');
@@ -107,5 +112,5 @@ try {
     console.log(`Server is running on port ${PORT}`);
   });
 } catch (err) {
-  console.error('Error starting the application:', err);
+  logManager.log('error', `Error initializing the application: ${err}`);
 }

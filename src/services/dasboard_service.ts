@@ -4,6 +4,8 @@ import { Subscription } from '../models/subscription';
 import { PayTRService } from './paytr_service';
 import { IyzicoService } from './iyzico_service';
 import { UserService } from './user_service';
+import { LogManager } from './log_manager';
+const logManager = new LogManager('DashboardService');
 export class DashboardService {
   public async processCallback(body: any): Promise<{
     status: string;
@@ -121,7 +123,7 @@ export class DashboardService {
         usageHistory: formatedUsageHistory,
       };
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      logManager.log('error', `Error fetching dashboard data: ${error}`);
       throw new Error('Failed to fetch dashboard data');
     }
   }
@@ -149,7 +151,7 @@ export class DashboardService {
       });
       return response;
     } catch (error) {
-      console.error('Error purchasing subscription:', error);
+      logManager.log('error', `Error initializing purchase: ${error}`);
       throw new Error('Failed to purchase subscription');
     }
   }
