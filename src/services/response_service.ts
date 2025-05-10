@@ -316,8 +316,8 @@ export class ResponseService {
 
     let finalMessage = cleanedMessage;
     const usageInfo = `\n Kullanım: ${
-      isWebSearch ? `web araması(${CreditCosts.WEB_SEARCH})` : ''
-    } + ${smsCount} total: ${cost} Mesaj`;
+      isWebSearch ? `web araması(${CreditCosts.WEB_SEARCH}) +` : ''
+    } ${smsCount} total: ${cost} Mesaj`;
 
     // Kalan mesaj bilgisi oluştur
     const remainingInfo = `\n Kalan Mesaj: ${newCredits}`;
