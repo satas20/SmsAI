@@ -37,12 +37,16 @@ class AIService {
     });
   }
 
-  public async createGeminiWSResponse(prompt: string): Promise<any> {
+  public async createGeminiWSResponse(
+    prompt: string,
+    systemInstruction: string,
+  ): Promise<any> {
     try {
       const response = await this.gemini.models.generateContent({
         model: 'gemini-2.0-flash',
         contents: prompt,
         config: {
+          systemInstruction: systemInstruction,
           tools: [
             {
               googleSearch: {
