@@ -6,7 +6,7 @@ export enum SystemMessages {
   ADMIN = ':admin:',
 }
 export enum CreditCosts {
-  WEB_SEARCH = 3,
+  WEB_SEARCH = 8,
   NORMAL_RESPONSE = 1,
 }
 export const MAX_SMS_LENGTH = 870;
