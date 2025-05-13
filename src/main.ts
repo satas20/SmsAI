@@ -27,6 +27,7 @@ const allowedOrigins = [
   'https://localhost:3000',
   'https://sandbox-api.iyzipay.com',
   'https://api.iyzipay.com',
+  'https://cpp.iyzipay.com',
 ];
 const logManager = new LogManager('Main.ts');
 logManager.initialize();
