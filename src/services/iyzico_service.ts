@@ -75,7 +75,7 @@ export class IyzicoService {
     this.iyzipay = new Iyzipay({
       apiKey: this.apikey,
       secretKey: this.secretKey,
-      uri: 'https://sandbox-api.iyzipay.com',
+      uri: 'https://api.iyzipay.com',
     });
   }
 
