@@ -24,7 +24,14 @@ const connectKafkaProducer = async () => {
     if (!topics.includes('sms-inbound')) {
       await admin.createTopics({
         topics: [
-          { topic: 'sms-inbound', numPartitions: 1, replicationFactor: 1 },
+          {
+            topic: 'sms-inbound',
+            numPartitions: 1,
+            replicationFactor: 1,
+            configEntries: [
+              { name: 'retention.ms', value: '86400000' }, // 1 day in ms
+            ],
+          },
         ],
       });
     }
