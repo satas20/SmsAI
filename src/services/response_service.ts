@@ -160,8 +160,8 @@ export class ResponseService {
       response +=
         '\nPaketleri smsai.site üzerinden alabilirsiniz. SMS ile satın almak çok yakında aktif olacak.';
     }
-    if (message === SystemMessages.SMSAI) {
-      response = `SMS-AI, yapay zeka destekli bir mesajlaşma hizmetidir.İnternete ihtiyaç duymadan yapay zeka kullanabilirsiniz. Web araması yapabilme özelliği ile güncel bilgilere ulaşmanızı sağlar. detaylı bilgi  ve kullanım talimatı için :help: yazabilirsiniz.`;
+    if (message.startsWith(SystemMessages.SMSAI)) {
+      response = `SMS-AI, yapay zeka destekli bir mesajlaşma hizmetidir.İnternete ihtiyaç duymadan yapay zeka kullanabilirsiniz. Web araması yapabilme özelliği ile güncel bilgilere ulaşmanızı sağlar. Mesaj göndermek ücretsizdir. detaylı bilgi  ve kullanım talimatı için :help: yazabilirsiniz.`;
     }
     this.logUsage(
       user.getDataValue('id'),
@@ -286,7 +286,7 @@ export class ResponseService {
   private async handleDisableWebSearch(
     kafkaMessage: KafkaMessage,
   ): Promise<{ textResponse: string; isWebSearch: boolean }> {
-    kafkaMessage.message = kafkaMessage.message.replace(':ws!:', '');
+    kafkaMessage.message = kafkaMessage.message.replace(':s!:', '');
     const prompt = [
       { role: 'system', content: paidSystemPrompt },
       { role: 'user', content: kafkaMessage.message },
