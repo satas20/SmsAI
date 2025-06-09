@@ -394,6 +394,7 @@ export class ResponseService {
   }
 
   private isSystemMessage(message: any): boolean {
+    if (message.startsWith(':smsai:')) return true;
     const trimmedMessage = message.trim();
     return Object.values(SystemMessages).includes(trimmedMessage.toLowerCase());
   }
