@@ -160,7 +160,7 @@ export class ResponseService {
       response +=
         '\nPaketleri smsai.site üzerinden alabilirsiniz. SMS ile satın almak çok yakında aktif olacak.';
     }
-    if (message.startsWith(SystemMessages.SMSAI)) {
+    if (kafkaMessage.message.startsWith(SystemMessages.SMSAI)) {
       response = `SMS-AI, yapay zeka destekli bir mesajlaşma hizmetidir.İnternete ihtiyaç duymadan yapay zeka kullanabilirsiniz. Web araması yapabilme özelliği ile güncel bilgilere ulaşmanızı sağlar. Mesaj göndermek ücretsizdir. detaylı bilgi  ve kullanım talimatı için :help: yazabilirsiniz.`;
     }
     this.logUsage(
