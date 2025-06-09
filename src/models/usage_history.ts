@@ -11,6 +11,10 @@ class UsageHistory extends Model {
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      references: {
+        model: 'users',
+        key: 'id',
+      },
     },
     phoneNumber: {
       type: DataTypes.STRING,
