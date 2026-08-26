@@ -1,11 +1,13 @@
 # SmsAI
 
-AI-powered SMS messaging platform: the backend.
+> **Status: not hosted anymore.** The service ran at smsai.site /
+> api.smsai.site but is no longer deployed. This repository is the
+> complete source, kept public as a portfolio piece.
 
-Messages are drafted with LLMs and delivered as SMS campaigns over
+AI-powered SMS messaging platform: the backend. Messages are drafted with
+LLMs and delivered as SMS campaigns over
 [NetGSM](https://www.netgsm.com.tr), with payments handled by PayTR and
-Iyzico. Deployed at [api.smsai.site](https://api.smsai.site) behind the
-dashboard at [smsai.site](https://www.smsai.site).
+Iyzico.
 
 ## Stack
 
